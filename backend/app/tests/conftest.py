@@ -9,6 +9,7 @@ from app.core.security import create_access_token, hash_password
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.agent import Agent
 from app.models.enums import UserRole
 from app.models.user import User
 
@@ -54,11 +55,21 @@ def manager_user(db_session):
 
 
 @pytest.fixture()
-def agent_user(db_session):
+def agent_record(db_session):
+    agent = Agent(name="Test Agent")
+    db_session.add(agent)
+    db_session.commit()
+    db_session.refresh(agent)
+    return agent
+
+
+@pytest.fixture()
+def agent_user(db_session, agent_record):
     user = User(
         email="agent@callroster-demo.com",
         hashed_password=hash_password("agentpass123"),
         role=UserRole.agent,
+        agent_id=agent_record.id,
     )
     db_session.add(user)
     db_session.commit()
@@ -73,7 +84,7 @@ def manager_token(manager_user):
 
 @pytest.fixture()
 def agent_token(agent_user):
-    return create_access_token(subject=str(agent_user.id), role=agent_user.role.value, agent_id=None)
+    return create_access_token(subject=str(agent_user.id), role=agent_user.role.value, agent_id=agent_user.agent_id)
 
 
 @pytest.fixture()
