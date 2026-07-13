@@ -13,6 +13,7 @@ from app.models.enums import (
     GeneratedBy,
     RequestStatus,
     RequestType,
+    WeeklyCycleStatus,
 )
 from app.models.leave_balance import LeaveBalance
 from app.models.roster import ConflictReport, Roster, RosterAssignment, SatisfactionMetric
@@ -67,6 +68,8 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
     cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == week_cycle_id).first()
     if cycle is None:
         raise RosterGenerationError("Weekly cycle not found", status_code=404)
+    if cycle.status == WeeklyCycleStatus.locked:
+        raise RosterGenerationError("This weekly cycle is locked; the roster can no longer be regenerated")
 
     agents = (
         db.query(Agent)

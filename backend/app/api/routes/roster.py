@@ -11,6 +11,7 @@ from app.schemas.roster import (
     RosterOut,
     SatisfactionMetricOut,
 )
+from app.services.roster_lifecycle import RosterLifecycleError, lock_roster, publish_roster
 from app.solver.service import RosterGenerationError, generate_roster
 
 router = APIRouter(prefix="/api/roster", tags=["roster"], dependencies=[Depends(require_manager)])
@@ -31,12 +32,28 @@ def generate(week_cycle_id: int, db: Session = Depends(get_db)) -> RosterGenerat
     )
 
 
-@router.get("/{roster_id}", response_model=RosterOut)
+@router.get("/{roster_id}/detail", response_model=RosterOut)
 def get_roster(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
     roster = crud.get_roster(db, roster_id)
     if roster is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roster not found")
     return roster
+
+
+@router.post("/{roster_id}/publish", response_model=RosterOut)
+def publish(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
+    try:
+        return publish_roster(db, roster_id)
+    except RosterLifecycleError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.post("/{roster_id}/lock", response_model=RosterOut)
+def lock(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
+    try:
+        return lock_roster(db, roster_id)
+    except RosterLifecycleError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
 @router.get("/{roster_id}/assignments", response_model=list[RosterAssignmentOut])

@@ -5,6 +5,7 @@ from app.api.routes import (
     auth,
     coverage_requirements,
     leave_balance,
+    public_roster,
     roster,
     shift_templates,
     skills,
@@ -25,6 +26,7 @@ app.include_router(leave_balance.router)
 app.include_router(weekly_requests.router)
 app.include_router(solver_config.router)
 app.include_router(roster.router)
+app.include_router(public_roster.router)
 
 
 @app.get("/api/health")

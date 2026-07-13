@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
-from app.models.enums import RequestStatus, RequestType
+from app.models.enums import RequestStatus, RequestType, WeeklyCycleStatus
 from app.models.leave_balance import LeaveBalance
 from app.models.weekly_cycle import WeeklyCycle
 from app.models.weekly_request import WeeklyRequest
@@ -59,7 +59,7 @@ def create_request(db: Session, agent_id: int, request_in: WeeklyRequestCreate) 
         raise WeeklyRequestError("Weekly cycle not found", status_code=404)
 
     now = datetime.now(timezone.utc)
-    if now > cycle.request_deadline:
+    if cycle.status == WeeklyCycleStatus.locked or now > cycle.request_deadline:
         raise WeeklyRequestError("The request window for this weekly cycle has closed")
 
     denial_reason = None
@@ -95,7 +95,7 @@ def review_request(db: Session, request: WeeklyRequest, review: WeeklyRequestRev
     leave balances are only ever touched by the solver at roster generation time."""
     now = datetime.now(timezone.utc)
     cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == request.week_cycle_id).first()
-    if cycle is not None and now > cycle.lock_timestamp:
+    if cycle is not None and (cycle.status == WeeklyCycleStatus.locked or now > cycle.lock_timestamp):
         raise WeeklyRequestError("This weekly cycle is locked; requests can no longer be reviewed")
 
     request.status = RequestStatus.denied
