@@ -91,26 +91,15 @@ def create_request(db: Session, agent_id: int, request_in: WeeklyRequestCreate) 
 
 
 def review_request(db: Session, request: WeeklyRequest, review: WeeklyRequestReview) -> WeeklyRequest:
+    """Pre-solver manager triage: deny-only (see WeeklyRequestReview). No balance impact —
+    leave balances are only ever touched by the solver at roster generation time."""
     now = datetime.now(timezone.utc)
     cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == request.week_cycle_id).first()
     if cycle is not None and now > cycle.lock_timestamp:
         raise WeeklyRequestError("This weekly cycle is locked; requests can no longer be reviewed")
 
-    if review.status == RequestStatus.approved and request.request_type in LEAVE_REQUEST_TYPES:
-        balance = _get_leave_balance_or_error(db, request.agent_id, request.requested_start_date.year)
-        days = requested_days(request.request_type, request.requested_start_date, request.requested_end_date)
-        if days > balance.remaining_balance:
-            raise WeeklyRequestError(
-                f"Requested {days} day(s) exceeds remaining leave balance of {balance.remaining_balance}"
-            )
-        if request.request_type == RequestType.leave_half:
-            balance.half_days_taken = Decimal(balance.half_days_taken) + days
-        else:
-            balance.leave_days_taken = Decimal(balance.leave_days_taken) + days
-        balance.remaining_balance = Decimal(balance.remaining_balance) - days
-
-    request.status = review.status
-    request.denial_reason = review.denial_reason if review.status == RequestStatus.denied else None
+    request.status = RequestStatus.denied
+    request.denial_reason = review.denial_reason
     db.commit()
     db.refresh(request)
     return request

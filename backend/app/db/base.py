@@ -16,6 +16,7 @@ from app.models import (  # noqa: E402,F401
     roster,
     shift,
     skill,
+    solver_config,
     user,
     weekly_cycle,
     weekly_request,

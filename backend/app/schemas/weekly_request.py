@@ -30,15 +30,20 @@ class WeeklyRequestCreate(BaseModel):
 
 
 class WeeklyRequestReview(BaseModel):
+    """Pre-solver manager triage. Can only reject invalid/duplicate requests —
+    real approval is decided by the solver at roster generation time (spec §2.6)."""
+
     status: RequestStatus
     denial_reason: str | None = None
 
     @model_validator(mode="after")
-    def _require_denial_reason(self) -> "WeeklyRequestReview":
-        if self.status == RequestStatus.denied and not self.denial_reason:
+    def _deny_only(self) -> "WeeklyRequestReview":
+        if self.status != RequestStatus.denied:
+            raise ValueError(
+                "Pre-solver review can only deny a request; approval happens via roster generation"
+            )
+        if not self.denial_reason:
             raise ValueError("denial_reason is required when denying a request")
-        if self.status not in (RequestStatus.approved, RequestStatus.denied):
-            raise ValueError("status must be 'approved' or 'denied'")
         return self
 
 

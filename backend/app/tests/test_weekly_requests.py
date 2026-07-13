@@ -156,7 +156,9 @@ def test_request_after_deadline_rejected(client, manager_headers, agent_headers,
     assert "request window" in response.json()["detail"]
 
 
-def test_manager_approves_leave_request_decrements_balance(client, manager_headers, agent_headers, agent_record):
+def test_manager_cannot_approve_via_patch(client, manager_headers, agent_headers, agent_record):
+    """Pre-solver, PATCH can only deny. Real approval + balance decrement happens
+    only via POST /api/roster/generate (the solver decides, per spec §2.6)."""
     cycle = _create_cycle(client, manager_headers)
     _create_balance(client, manager_headers, agent_record.id, days=5)
 
@@ -174,12 +176,11 @@ def test_manager_approves_leave_request_decrements_balance(client, manager_heade
     response = client.patch(
         f"/api/requests/{request_id}", json={"status": "approved"}, headers=manager_headers
     )
-    assert response.status_code == 200
-    assert response.json()["status"] == "approved"
+    assert response.status_code == 422
 
     balance = client.get(f"/api/leave-balance/{agent_record.id}", headers=manager_headers).json()
-    assert balance["remaining_balance"] == 4
-    assert balance["leave_days_taken"] == 1
+    assert balance["remaining_balance"] == 5
+    assert balance["leave_days_taken"] == 0
 
 
 def test_manager_denies_request_requires_reason(client, manager_headers, agent_headers):
@@ -266,13 +267,16 @@ def test_manager_lists_requests_for_week(client, manager_headers, agent_headers)
     assert len(response.json()) == 1
 
 
-def test_leave_multi_day_count(client, manager_headers, agent_headers, agent_record):
+def test_leave_multi_day_count_validated_against_balance(client, manager_headers, agent_headers, agent_record):
+    """leave_multi spans 3 days (start..end inclusive); submission validates that
+    count against the remaining balance without decrementing it (decrement only
+    happens when the solver honors the request at generation time)."""
     cycle = _create_cycle(client, manager_headers)
-    _create_balance(client, manager_headers, agent_record.id, days=10)
+    _create_balance(client, manager_headers, agent_record.id, days=2)
     start = date.fromisoformat(cycle["week_start_date"])
     end = start + timedelta(days=2)
 
-    create = client.post(
+    response = client.post(
         "/api/requests",
         json={
             "week_cycle_id": cycle["id"],
@@ -282,10 +286,8 @@ def test_leave_multi_day_count(client, manager_headers, agent_headers, agent_rec
         },
         headers=agent_headers,
     )
-    assert create.status_code == 201
-    request_id = create.json()["id"]
-
-    client.patch(f"/api/requests/{request_id}", json={"status": "approved"}, headers=manager_headers)
+    assert response.status_code == 400
+    assert "exceeds remaining leave balance" in response.json()["detail"]
 
     balance = client.get(f"/api/leave-balance/{agent_record.id}", headers=manager_headers).json()
-    assert balance["remaining_balance"] == 7
+    assert balance["remaining_balance"] == 2
