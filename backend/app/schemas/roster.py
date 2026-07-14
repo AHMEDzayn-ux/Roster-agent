@@ -59,3 +59,11 @@ class RosterImportResponse(BaseModel):
     roster: RosterOut
     assignments: list[RosterAssignmentOut]
     overridden_requests: list[str]
+
+
+class RosterOverrideRequest(BaseModel):
+    agent_id: int
+    date: date
+    shift_id: int | None = None
+    skill_id: int | None = None
+    reason: str

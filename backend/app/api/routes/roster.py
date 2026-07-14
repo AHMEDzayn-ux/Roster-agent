@@ -14,9 +14,16 @@ from app.schemas.roster import (
     RosterGenerateResponse,
     RosterImportResponse,
     RosterOut,
+    RosterOverrideRequest,
     SatisfactionMetricOut,
 )
-from app.services.roster_excel import RosterImportError, export_roster_workbook, parse_import_file, revalidate_and_apply_import
+from app.services.roster_excel import (
+    RosterImportError,
+    apply_manual_override,
+    export_roster_workbook,
+    parse_import_file,
+    revalidate_and_apply_import,
+)
 from app.services.roster_lifecycle import RosterLifecycleError, lock_roster, publish_roster
 from app.solver.service import RosterGenerationError, generate_roster
 
@@ -91,6 +98,36 @@ async def import_roster(
     try:
         rows = parse_import_file(file_bytes)
         result = revalidate_and_apply_import(db, roster_id, rows, reason, current_user.id)
+    except RosterImportError as exc:
+        raise HTTPException(
+            status_code=exc.status_code, detail={"message": exc.detail, "violations": exc.violations}
+        )
+
+    return RosterImportResponse(
+        roster=result.roster,
+        assignments=crud.list_assignments(db, roster_id),
+        overridden_requests=result.overridden_requests,
+    )
+
+
+@router.post("/{roster_id}/override", response_model=RosterImportResponse)
+def override_assignment(
+    roster_id: int,
+    payload: RosterOverrideRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+) -> RosterImportResponse:
+    try:
+        result = apply_manual_override(
+            db,
+            roster_id,
+            agent_id=payload.agent_id,
+            target_date=payload.date,
+            shift_id=payload.shift_id,
+            skill_id=payload.skill_id,
+            reason=payload.reason,
+            actor_id=current_user.id,
+        )
     except RosterImportError as exc:
         raise HTTPException(
             status_code=exc.status_code, detail={"message": exc.detail, "violations": exc.violations}

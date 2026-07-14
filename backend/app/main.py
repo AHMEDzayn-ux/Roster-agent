@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from app.api.routes import (
     agents,
+    appeals,
+    audit,
     auth,
     coverage_requirements,
     leave_balance,
@@ -27,6 +29,8 @@ app.include_router(weekly_requests.router)
 app.include_router(solver_config.router)
 app.include_router(roster.router)
 app.include_router(public_roster.router)
+app.include_router(audit.router)
+app.include_router(appeals.router)
 
 
 @app.get("/api/health")

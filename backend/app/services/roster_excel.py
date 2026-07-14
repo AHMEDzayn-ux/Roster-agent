@@ -249,13 +249,20 @@ def _compute_flips(db: Session, cycle: WeeklyCycle, rows: list[ParsedAssignmentR
     return flips
 
 
-def revalidate_and_apply_import(
-    db: Session, roster_id: int, rows: list[ParsedAssignmentRow], reason: str | None, actor_id: int
+def apply_proposed_roster(
+    db: Session,
+    roster: Roster,
+    cycle: WeeklyCycle,
+    rows: list[ParsedAssignmentRow],
+    reason: str | None,
+    actor_id: int,
+    action_type: str,
+    require_reason: bool,
 ) -> ImportResult:
-    roster = db.query(Roster).filter(Roster.id == roster_id).first()
-    if roster is None:
-        raise RosterImportError("Roster not found", status_code=404)
-    cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == roster.week_cycle_id).first()
+    """Shared core for both Excel re-upload and the single-assignment manual
+    override endpoint: validate hard constraints, detect soft-constraint
+    flips against currently-decided request outcomes, apply if clean (or a
+    reason was given), and write the audit trail."""
     if cycle.status == WeeklyCycleStatus.locked:
         raise RosterImportError("This weekly cycle is locked; the roster can no longer be edited", status_code=400)
 
@@ -270,13 +277,15 @@ def revalidate_and_apply_import(
         f"{'Granting' if honored else 'Revoking'} {req.request_type.value} request #{req.id} for agent {req.agent_id}"
         for req, honored in flips
     ]
-    if flips and not reason:
-        raise RosterImportError(
-            "This edit overrides solver-decided request outcome(s); a reason is required",
-            violations=descriptions,
-            status_code=400,
+    if (require_reason or flips) and not reason:
+        message = (
+            "This edit overrides solver-decided request outcome(s); a reason is required"
+            if flips
+            else "A reason is required for a manual override"
         )
+        raise RosterImportError(message, violations=descriptions, status_code=400)
 
+    old_count = db.query(RosterAssignment).filter(RosterAssignment.roster_id == roster.id).count()
     db.query(RosterAssignment).filter(RosterAssignment.roster_id == roster.id).delete()
     for r in rows:
         db.add(
@@ -299,20 +308,73 @@ def revalidate_and_apply_import(
                 raise RosterImportError(exc.detail, status_code=400)
         req.status = RequestStatus.approved if honored else RequestStatus.denied
         req.denial_reason = None if honored else "manual roster override"
-
-    if flips:
         db.add(
             AuditLog(
                 actor_id=actor_id,
-                action_type="roster_import_override",
-                target_type="roster",
-                target_id=roster.id,
-                old_value=f"{len(flips)} request(s) reversed via Excel re-upload",
-                new_value=f"{len(rows)} assignment(s) applied",
+                action_type="request_outcome_overridden",
+                target_type="weekly_request",
+                target_id=req.id,
+                old_value=old_status.value,
+                new_value=req.status.value,
                 reason=reason,
             )
         )
 
+    db.add(
+        AuditLog(
+            actor_id=actor_id,
+            action_type=action_type,
+            target_type="roster",
+            target_id=roster.id,
+            old_value=f"{old_count} assignment(s)",
+            new_value=f"{len(rows)} assignment(s)",
+            reason=reason,
+        )
+    )
+
     db.commit()
     db.refresh(roster)
     return ImportResult(roster=roster, overridden_requests=descriptions)
+
+
+def revalidate_and_apply_import(
+    db: Session, roster_id: int, rows: list[ParsedAssignmentRow], reason: str | None, actor_id: int
+) -> ImportResult:
+    roster = db.query(Roster).filter(Roster.id == roster_id).first()
+    if roster is None:
+        raise RosterImportError("Roster not found", status_code=404)
+    cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == roster.week_cycle_id).first()
+    return apply_proposed_roster(
+        db, roster, cycle, rows, reason, actor_id, action_type="roster_import_override", require_reason=False
+    )
+
+
+def apply_manual_override(
+    db: Session,
+    roster_id: int,
+    agent_id: int,
+    target_date: date,
+    shift_id: int | None,
+    skill_id: int | None,
+    reason: str,
+    actor_id: int,
+) -> ImportResult:
+    """Edit a single (agent, date) assignment directly — set shift_id/skill_id
+    to reassign, or both to None to unassign (give the agent that day off)."""
+    roster = db.query(Roster).filter(Roster.id == roster_id).first()
+    if roster is None:
+        raise RosterImportError("Roster not found", status_code=404)
+    cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == roster.week_cycle_id).first()
+
+    current = db.query(RosterAssignment).filter(RosterAssignment.roster_id == roster.id).all()
+    rows = [
+        ParsedAssignmentRow(agent_id=a.agent_id, date=a.date, shift_id=a.shift_id, skill_id=a.skill_covered_id)
+        for a in current
+        if not (a.agent_id == agent_id and a.date == target_date)
+    ]
+    if shift_id is not None and skill_id is not None:
+        rows.append(ParsedAssignmentRow(agent_id=agent_id, date=target_date, shift_id=shift_id, skill_id=skill_id))
+
+    return apply_proposed_roster(
+        db, roster, cycle, rows, reason, actor_id, action_type="roster_manual_override", require_reason=True
+    )
