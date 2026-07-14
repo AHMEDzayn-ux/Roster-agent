@@ -17,10 +17,8 @@ from datetime import date, time, timedelta
 
 from ortools.sat.python import cp_model
 
-MIDNIGHT = time(0, 0)
-END_OF_DAY = time(23, 59, 59)
-
-LEAVE_TYPES = {"leave_full", "leave_half", "leave_multi"}
+from app.domain.leave import LEAVE_TYPES, leave_dates
+from app.domain.shift_coverage import shift_covers_slot
 
 
 @dataclass
@@ -99,34 +97,6 @@ class SolverResult:
     decisions: list[SolverRequestDecision] = field(default_factory=list)
 
 
-def _shift_intervals(start: time, end: time) -> list[tuple[time, time]]:
-    if end == MIDNIGHT:
-        return [(start, END_OF_DAY)]
-    if end > start:
-        return [(start, end)]
-    return [(start, END_OF_DAY), (MIDNIGHT, end)]
-
-
-def _overlaps(a_start: time, a_end: time, b_start: time, b_end: time) -> bool:
-    return a_start < b_end and b_start < a_end
-
-
-def _shift_covers_slot(shift: SolverShift, slot_start: time, slot_end: time) -> bool:
-    return any(
-        _overlaps(s, e, slot_start, slot_end) for s, e in _shift_intervals(shift.start_time, shift.end_time)
-    )
-
-
-def _leave_dates(request: SolverRequest) -> list[date]:
-    if request.request_type in ("leave_full", "leave_half"):
-        return [request.start_date]
-    if request.request_type == "leave_multi":
-        end = request.end_date or request.start_date
-        days = (end - request.start_date).days + 1
-        return [request.start_date + timedelta(days=i) for i in range(days)]
-    return []
-
-
 def solve(problem: SolverInput) -> SolverResult:
     model = cp_model.CpModel()
     week_dates = [problem.week_start_date + timedelta(days=i) for i in range(7)]
@@ -136,7 +106,7 @@ def solve(problem: SolverInput) -> SolverResult:
     for req in problem.requests:
         if req.request_type == "other":
             continue
-        for d in _leave_dates(req) if req.request_type in LEAVE_TYPES else [req.start_date]:
+        for d in leave_dates(req.request_type, req.start_date, req.end_date) if req.request_type in LEAVE_TYPES else [req.start_date]:
             requests_by_agent_date.setdefault((req.agent_id, d), []).append(req)
 
     off_day_request_dates: dict[int, date] = {
@@ -189,7 +159,9 @@ def solve(problem: SolverInput) -> SolverResult:
                         problem.requests, agent.id, d
                     )
                     shift = shifts_by_id.get(shift_id)
-                    if shift is None or not _shift_covers_slot(shift, req.time_slot_start, req.time_slot_end):
+                    if shift is None or not shift_covers_slot(
+                        shift.start_time, shift.end_time, req.time_slot_start, req.time_slot_end
+                    ):
                         continue
                     terms.append(assign_vars[key][req.skill_id])
             model.Add(sum(terms) >= req.min_agents_required)

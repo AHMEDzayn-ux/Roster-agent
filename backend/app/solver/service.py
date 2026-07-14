@@ -1,10 +1,7 @@
-from datetime import timedelta
-from decimal import Decimal
-
 from sqlalchemy.orm import Session, joinedload
 
 from app.crud.solver_config import get_or_create_solver_weights
-from app.crud.weekly_request import LEAVE_REQUEST_TYPES, requested_days
+from app.crud.weekly_request import LEAVE_REQUEST_TYPES
 from app.models.agent import Agent
 from app.models.coverage import CoverageRequirement
 from app.models.enums import (
@@ -15,11 +12,11 @@ from app.models.enums import (
     RequestType,
     WeeklyCycleStatus,
 )
-from app.models.leave_balance import LeaveBalance
 from app.models.roster import ConflictReport, Roster, RosterAssignment, SatisfactionMetric
 from app.models.shift import ShiftTemplate
 from app.models.weekly_cycle import WeeklyCycle
 from app.models.weekly_request import WeeklyRequest
+from app.services.leave_balance_sync import LeaveBalanceSyncError, sync_leave_balance
 from app.solver.model import (
     SolverAgent,
     SolverCoverageRequirement,
@@ -171,7 +168,10 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
             honored_count_by_agent[request.agent_id] = honored_count_by_agent.get(request.agent_id, 0) + 1
 
         if request.request_type in LEAVE_REQUEST_TYPES:
-            _sync_leave_balance(db, request, old_status, decision.honored)
+            try:
+                sync_leave_balance(db, request, old_status, decision.honored)
+            except LeaveBalanceSyncError as exc:
+                raise RosterGenerationError(exc.detail)
 
         request.status = RequestStatus.approved if decision.honored else RequestStatus.denied
         request.denial_reason = None if decision.honored else "coverage requirement"
@@ -213,34 +213,3 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
     db.commit()
     db.refresh(roster)
     return roster
-
-
-def _sync_leave_balance(db: Session, request: WeeklyRequest, old_status: RequestStatus, honored: bool) -> None:
-    days = requested_days(request.request_type, request.requested_start_date, request.requested_end_date)
-    was_applied = old_status == RequestStatus.approved
-
-    if honored and not was_applied:
-        delta = days
-    elif not honored and was_applied:
-        delta = -days
-    else:
-        return  # no change in outcome since last run; balance already reflects it
-
-    balance = (
-        db.query(LeaveBalance)
-        .filter(
-            LeaveBalance.agent_id == request.agent_id,
-            LeaveBalance.year == request.requested_start_date.year,
-        )
-        .first()
-    )
-    if balance is None:
-        raise RosterGenerationError(
-            f"No leave balance configured for agent {request.agent_id} for {request.requested_start_date.year}"
-        )
-
-    if request.request_type == RequestType.leave_half:
-        balance.half_days_taken = Decimal(balance.half_days_taken) + delta
-    else:
-        balance.leave_days_taken = Decimal(balance.leave_days_taken) + delta
-    balance.remaining_balance = Decimal(balance.remaining_balance) - delta

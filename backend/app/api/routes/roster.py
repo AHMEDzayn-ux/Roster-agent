@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from io import BytesIO
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_manager
 from app.crud import roster as crud
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.roster import (
     ConflictReportOut,
     RosterAssignmentOut,
     RosterGenerateResponse,
+    RosterImportResponse,
     RosterOut,
     SatisfactionMetricOut,
 )
+from app.services.roster_excel import RosterImportError, export_roster_workbook, parse_import_file, revalidate_and_apply_import
 from app.services.roster_lifecycle import RosterLifecycleError, lock_roster, publish_roster
 from app.solver.service import RosterGenerationError, generate_roster
 
@@ -54,6 +60,47 @@ def lock(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
         return lock_roster(db, roster_id)
     except RosterLifecycleError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.get("/{roster_id}/export")
+def export_roster(roster_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    roster = crud.get_roster(db, roster_id)
+    if roster is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roster not found")
+
+    workbook = export_roster_workbook(db, roster)
+    buffer = BytesIO()
+    workbook.save(buffer)
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=roster_{roster_id}.xlsx"},
+    )
+
+
+@router.post("/{roster_id}/import", response_model=RosterImportResponse)
+async def import_roster(
+    roster_id: int,
+    file: UploadFile = File(...),
+    reason: str | None = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+) -> RosterImportResponse:
+    file_bytes = await file.read()
+    try:
+        rows = parse_import_file(file_bytes)
+        result = revalidate_and_apply_import(db, roster_id, rows, reason, current_user.id)
+    except RosterImportError as exc:
+        raise HTTPException(
+            status_code=exc.status_code, detail={"message": exc.detail, "violations": exc.violations}
+        )
+
+    return RosterImportResponse(
+        roster=result.roster,
+        assignments=crud.list_assignments(db, roster_id),
+        overridden_requests=result.overridden_requests,
+    )
 
 
 @router.get("/{roster_id}/assignments", response_model=list[RosterAssignmentOut])

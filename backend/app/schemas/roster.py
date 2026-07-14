@@ -53,3 +53,9 @@ class RosterGenerateResponse(BaseModel):
     assignments: list[RosterAssignmentOut]
     conflicts: list[ConflictReportOut]
     satisfaction_metrics: list[SatisfactionMetricOut]
+
+
+class RosterImportResponse(BaseModel):
+    roster: RosterOut
+    assignments: list[RosterAssignmentOut]
+    overridden_requests: list[str]
