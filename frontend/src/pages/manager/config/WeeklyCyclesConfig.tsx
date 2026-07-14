@@ -1,0 +1,68 @@
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { extractErrorMessage } from '../../../api/client'
+import { createWeeklyCycle, listWeeklyCycles } from '../../../api/endpoints'
+import { Button, Card, EmptyState, ErrorBanner, Field, Input, LoadingText, StatusBadge } from '../../../components/ui'
+
+export default function WeeklyCyclesConfig() {
+  const queryClient = useQueryClient()
+  const query = useQuery({ queryKey: ['weekly-cycles'], queryFn: listWeeklyCycles })
+  const [weekStart, setWeekStart] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  const createMutation = useMutation({
+    mutationFn: () => createWeeklyCycle(weekStart),
+    onSuccess: () => {
+      setWeekStart('')
+      setError(null)
+      queryClient.invalidateQueries({ queryKey: ['weekly-cycles'] })
+    },
+    onError: (err) => setError(extractErrorMessage(err)),
+  })
+
+  return (
+    <div>
+      <Card className="mb-5">
+        <h2 className="mb-3 font-medium text-slate-800">Create a weekly cycle</h2>
+        <p className="mb-3 text-xs text-slate-500">
+          Must be a Monday. The Thursday request deadline, Friday publish window, and Saturday-midnight auto-lock are all
+          computed automatically.
+        </p>
+        <ErrorBanner message={error} />
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            createMutation.mutate()
+          }}
+          className="flex items-end gap-3"
+        >
+          <Field label="Week start (Monday)">
+            <Input type="date" required value={weekStart} onChange={(e) => setWeekStart(e.target.value)} />
+          </Field>
+          <Button type="submit" disabled={createMutation.isPending}>
+            Create
+          </Button>
+        </form>
+      </Card>
+
+      {query.isLoading && <LoadingText />}
+      {query.data && query.data.length === 0 && <EmptyState text="No weekly cycles yet." />}
+      {query.data && query.data.length > 0 && (
+        <div className="space-y-2">
+          {query.data.map((c) => (
+            <Card key={c.id} className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-800">Week of {c.week_start_date}</p>
+                <p className="text-sm text-slate-500">
+                  Requests close {new Date(c.request_deadline).toLocaleString()} · Locks{' '}
+                  {new Date(c.lock_timestamp).toLocaleString()}
+                </p>
+              </div>
+              <StatusBadge status={c.status} />
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
