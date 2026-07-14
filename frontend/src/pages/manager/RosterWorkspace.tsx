@@ -24,11 +24,18 @@ import {
   Field,
   Input,
   PageTitle,
+  ScrollTable,
   Select,
   StatusBadge,
   SuccessBanner,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
 } from '../../components/ui'
-import type { ConflictReport, SatisfactionMetric } from '../../types'
+import { DEFAULT_SHIFT_COLOR, SHIFT_COLORS, toCompact12h, weekdayLabel } from '../../lib/rosterGrid'
+import type { ConflictReport, RosterAssignment, SatisfactionMetric } from '../../types'
 
 export default function RosterWorkspace() {
   const queryClient = useQueryClient()
@@ -124,7 +131,6 @@ export default function RosterWorkspace() {
   const [ovAgentId, setOvAgentId] = useState('')
   const [ovDate, setOvDate] = useState('')
   const [ovShiftId, setOvShiftId] = useState('')
-  const [ovSkillId, setOvSkillId] = useState('')
   const [ovReason, setOvReason] = useState('')
   const overrideMutation = useMutation({
     mutationFn: () =>
@@ -132,7 +138,8 @@ export default function RosterWorkspace() {
         agent_id: Number(ovAgentId),
         date: ovDate,
         shift_id: ovShiftId ? Number(ovShiftId) : null,
-        skill_id: ovSkillId ? Number(ovSkillId) : null,
+        // skill is inferred from the agent's own skills on the backend
+        skill_id: null,
         reason: ovReason,
       }),
     onSuccess: (data) => {
@@ -182,6 +189,26 @@ export default function RosterWorkspace() {
     }
     return new Map([...map.entries()].sort())
   }, [assignmentsQuery.data])
+
+  const gridDays = useMemo(() => [...groupedAssignments.keys()], [groupedAssignments])
+
+  const gridAgents = useMemo(() => {
+    const ids = new Set<number>()
+    for (const a of assignmentsQuery.data ?? []) ids.add(a.agent_id)
+    return [...ids].map((id) => ({ id, name: agentName(id) })).sort((a, b) => a.name.localeCompare(b.name))
+  }, [assignmentsQuery.data, agentsQuery.data])
+
+  const assignmentByAgentDate = useMemo(() => {
+    const map = new Map<string, RosterAssignment>()
+    for (const a of assignmentsQuery.data ?? []) map.set(`${a.agent_id}|${a.date}`, a)
+    return map
+  }, [assignmentsQuery.data])
+
+  function shiftCompactLabel(shiftId: number): string {
+    const shift = shiftsQuery.data?.find((s) => s.id === shiftId)
+    if (!shift) return `#${shiftId}`
+    return `${toCompact12h(shift.start_time)}-${toCompact12h(shift.end_time)}`
+  }
 
   return (
     <div>
@@ -273,28 +300,62 @@ export default function RosterWorkspace() {
           )}
 
           <Card className="mb-5">
-            <h2 className="mb-3 font-medium text-slate-800">Assignments</h2>
-            {assignmentsQuery.data && assignmentsQuery.data.length === 0 && <EmptyState text="No assignments." />}
-            {groupedAssignments.size > 0 && (
-              <div className="space-y-4">
-                {[...groupedAssignments.entries()].map(([date, rows]) => (
-                  <div key={date}>
-                    <h3 className="mb-1 text-sm font-medium text-slate-600">{date}</h3>
-                    <table className="w-full text-left text-sm">
-                      <tbody>
-                        {rows?.map((a) => (
-                          <tr key={a.id} className="border-b border-slate-100 last:border-0">
-                            <td className="py-1 pr-4">{agentName(a.agent_id)}</td>
-                            <td className="py-1 pr-4">{shiftName(a.shift_id)}</td>
-                            <td className="py-1 pr-4">{skillName(a.skill_covered_id)}</td>
-                            <td className="py-1 text-xs text-slate-400">{a.source}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-medium text-slate-800">Assignments</h2>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                {Object.entries(SHIFT_COLORS).map(([name, cls]) => (
+                  <span key={name} className={`rounded px-1.5 py-0.5 ${cls}`}>
+                    {name}
+                  </span>
                 ))}
               </div>
+            </div>
+            {assignmentsQuery.data && assignmentsQuery.data.length === 0 && <EmptyState text="No assignments." />}
+            {gridDays.length > 0 && (
+              <ScrollTable>
+                <Thead>
+                  <Tr>
+                    <Th>Agent</Th>
+                    {gridDays.map((d) => (
+                      <Th key={d}>
+                        {weekdayLabel(d)}
+                        <span className="block font-normal normal-case text-slate-400">{d}</span>
+                      </Th>
+                    ))}
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {gridAgents.map((agent) => (
+                    <Tr key={agent.id}>
+                      <Td className="font-medium text-slate-800">{agent.name}</Td>
+                      {gridDays.map((day) => {
+                        const a = assignmentByAgentDate.get(`${agent.id}|${day}`)
+                        if (!a) {
+                          return (
+                            <Td key={day}>
+                              <span className="inline-block rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-500">
+                                OFF
+                              </span>
+                            </Td>
+                          )
+                        }
+                        const shift = shiftsQuery.data?.find((s) => s.id === a.shift_id)
+                        const colorCls = (shift && SHIFT_COLORS[shift.name]) || DEFAULT_SHIFT_COLOR
+                        return (
+                          <Td key={day}>
+                            <span
+                              className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${colorCls}`}
+                              title={`${shiftName(a.shift_id)} — ${skillName(a.skill_covered_id)}`}
+                            >
+                              {shiftCompactLabel(a.shift_id)}
+                            </span>
+                          </Td>
+                        )
+                      })}
+                    </Tr>
+                  ))}
+                </Tbody>
+              </ScrollTable>
             )}
           </Card>
 
@@ -311,33 +372,38 @@ export default function RosterWorkspace() {
             </Card>
 
             <Card>
-              <h2 className="mb-3 font-medium text-slate-800">Single-assignment override</h2>
+              <h2 className="mb-1 font-medium text-slate-800">Single-assignment override</h2>
+              <p className="mb-3 text-xs text-slate-500">
+                Put an agent on a shift for one day, or set them off. The skill they cover is chosen automatically
+                from their own skills; the edit is rejected if it breaks a hard constraint (double-booking, an
+                approved leave day, or a coverage minimum).
+              </p>
               <div className="grid grid-cols-2 gap-2">
-                <Select value={ovAgentId} onChange={(e) => setOvAgentId(e.target.value)}>
-                  <option value="">Agent…</option>
-                  {agentsQuery.data?.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
-                  ))}
-                </Select>
-                <Input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} />
-                <Select value={ovShiftId} onChange={(e) => setOvShiftId(e.target.value)}>
-                  <option value="">No shift (unassign)</option>
-                  {shiftsQuery.data?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </Select>
-                <Select value={ovSkillId} onChange={(e) => setOvSkillId(e.target.value)}>
-                  <option value="">Skill…</option>
-                  {skillsQuery.data?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </Select>
+                <Field label="Agent">
+                  <Select value={ovAgentId} onChange={(e) => setOvAgentId(e.target.value)}>
+                    <option value="">Select…</option>
+                    {agentsQuery.data?.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Date">
+                  <Input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} />
+                </Field>
+                <div className="col-span-2">
+                  <Field label="Shift">
+                    <Select value={ovShiftId} onChange={(e) => setOvShiftId(e.target.value)}>
+                      <option value="">Off (unassign — give this day off)</option>
+                      {shiftsQuery.data?.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.start_time}–{s.end_time})
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                </div>
                 <Input
                   className="col-span-2"
                   placeholder="Reason (always required)"

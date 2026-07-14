@@ -7,7 +7,7 @@ def _next_monday(weeks_ahead: int = 1) -> date:
     return today + timedelta(days=days_until_monday + 7 * (weeks_ahead - 1))
 
 
-def _create_cycle(client, manager_headers, weeks_ahead: int = 1) -> dict:
+def _create_cycle(client, manager_headers, weeks_ahead: int = 2) -> dict:
     monday = _next_monday(weeks_ahead)
     return client.post(
         "/api/weekly-cycles", json={"week_start_date": monday.isoformat()}, headers=manager_headers
@@ -174,14 +174,21 @@ def test_regeneration_refunds_balance_when_outcome_flips(client, manager_headers
     assert balance["leave_days_taken"] == 0
 
 
-def test_infeasible_coverage_returns_422(client, manager_headers):
+def test_unmeetable_coverage_is_soft_not_infeasible(client, manager_headers):
     cycle = _create_cycle(client, manager_headers)
     skill = _create_skill(client, manager_headers)
-    # No agent has this skill at all, but coverage demands one
-    _create_coverage(client, manager_headers, day_of_week=0, skill_id=skill["id"], min_required=1)
+    shift = _create_shift(client, manager_headers)
+    agent = _create_agent(client, manager_headers, "Solo", [skill["id"]], shift["id"])
+    other_skill = _create_skill(client, manager_headers, name="Nobody Has This")
+    # Coverage demands a skill no agent holds -> it simply goes unmet (soft),
+    # rather than failing generation as infeasible.
+    _create_coverage(client, manager_headers, day_of_week=0, skill_id=other_skill["id"], min_required=1)
 
     response = client.post(f"/api/roster/generate?week_cycle_id={cycle['id']}", headers=manager_headers)
-    assert response.status_code == 422
+    assert response.status_code == 201
+    body = response.json()
+    # the agent is still scheduled a normal 6-day week on the skill they do hold
+    assert len([a for a in body["assignments"] if a["agent_id"] == agent["id"]]) == 6
 
 
 def test_satisfaction_metrics_include_aggregate(client, manager_headers, agent_headers, agent_record):

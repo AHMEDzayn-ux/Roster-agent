@@ -39,6 +39,17 @@ export default function MyRequests() {
   const [appealReason, setAppealReason] = useState('')
   const [appealError, setAppealError] = useState<string | null>(null)
 
+  const [typeFilter, setTypeFilter] = useState<'all' | 'leave' | RequestType>('all')
+  const [statusFilter, setStatusFilter] = useState('')
+
+  const LEAVE_TYPES: RequestType[] = ['leave_full', 'leave_half', 'leave_multi']
+  const filteredRequests = (requestsQuery.data ?? []).filter((r) => {
+    if (typeFilter === 'leave' && !LEAVE_TYPES.includes(r.request_type)) return false
+    if (typeFilter !== 'all' && typeFilter !== 'leave' && r.request_type !== typeFilter) return false
+    if (statusFilter && r.status !== statusFilter) return false
+    return true
+  })
+
   const submitMutation = useMutation({
     mutationFn: () =>
       submitRequest({
@@ -146,12 +157,39 @@ export default function MyRequests() {
         )}
       </Card>
 
-      <h2 className="mb-2 text-lg font-medium text-slate-800">My requests</h2>
+      <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-lg font-medium text-slate-800">My requests</h2>
+        <div className="flex flex-wrap items-end gap-2">
+          <Field label="Type">
+            <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)} className="w-44">
+              <option value="all">All types</option>
+              <option value="leave">Leave history (all leave)</option>
+              {REQUEST_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {REQUEST_TYPE_LABELS[t]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Status">
+            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-36">
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="denied">Denied</option>
+              <option value="appealed">Appealed</option>
+            </Select>
+          </Field>
+        </div>
+      </div>
       {requestsQuery.isLoading && <LoadingText />}
       {requestsQuery.data && requestsQuery.data.length === 0 && <EmptyState text="No requests yet." />}
-      {requestsQuery.data && requestsQuery.data.length > 0 && (
+      {requestsQuery.data && requestsQuery.data.length > 0 && filteredRequests.length === 0 && (
+        <EmptyState text="No requests match these filters." />
+      )}
+      {filteredRequests.length > 0 && (
         <div className="space-y-3">
-          {requestsQuery.data.map((r) => (
+          {filteredRequests.map((r) => (
             <Card key={r.id}>
               <div className="flex items-start justify-between">
                 <div>

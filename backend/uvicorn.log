@@ -1,0 +1,166 @@
+INFO:     Started server process [27864]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:60234 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60236 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60238 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60239 - "GET /api/agents HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60242 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60243 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57316 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61482 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61481 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61480 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51540 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51541 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51539 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51542 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61014 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61013 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61012 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54204 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54203 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52846 - "GET /api/solver-config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58747 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65003 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63284 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62603 - "GET /api/roster/2026-07-30 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56013 - "GET /api/roster/2026-06-28 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51276 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51277 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65041 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63297 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63298 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59900 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59901 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59902 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54481 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52682 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52683 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57484 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57486 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57485 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59941 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59942 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58532 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58533 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62047 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58282 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58281 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56357 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58189 - "GET /api/leave-balance?year=2026 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55484 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55483 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55482 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59536 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59538 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59537 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59539 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58520 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59418 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59417 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61459 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59892 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59893 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59807 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59810 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59808 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59809 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61965 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61964 - "GET /api/appeals HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64639 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49669 - "GET /api/audit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55721 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55228 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49747 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61809 - "GET /api/roster/2026-07-13 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59827 - "GET /api/roster/2026-07-06 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62616 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53540 - "GET /api/roster/2026-10-12 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58919 - "GET /api/roster/2026-07-13 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54204 - "GET /api/roster/2026-07-20 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64882 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56807 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56810 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56808 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56809 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64822 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:60252 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52138 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54596 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57488 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57487 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57486 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65396 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51228 - "GET /api/leave-balance?year=2026 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57192 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60811 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60812 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59340 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55959 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55960 - "GET /api/coverage-requirements HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55103 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58894 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58895 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56386 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56388 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56387 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56389 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56580 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52302 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52303 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52304 - "POST /api/roster/generate HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:52305 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52306 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52308 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52309 - "POST /api/roster/generate?week_cycle_id=2 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52310 - "POST /api/roster/generate?week_cycle_id=3 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52311 - "POST /api/roster/generate?week_cycle_id=4 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:59764 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:64967 - "GET /api/roster/10/detail HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64970 - "GET /api/roster/10/satisfaction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64969 - "GET /api/roster/10/conflicts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64968 - "GET /api/roster/10/assignments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52017 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59354 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52018 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51453 - "GET /api/roster/10/assignments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57131 - "GET /api/roster/10/conflicts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65283 - "GET /api/roster/10/satisfaction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51454 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51452 - "GET /api/roster/10/detail HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59891 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59893 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59894 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59892 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64627 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64524 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64525 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57737 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56174 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56176 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56177 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56175 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61580 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61581 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61578 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61579 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59193 - "GET /api/weekly-cycles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54233 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54231 - "GET /api/agents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54232 - "GET /api/shift-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54234 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54235 - "GET /api/roster/6/assignments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59904 - "POST /api/roster/generate?week_cycle_id=2 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:56063 - "GET /api/roster/11/satisfaction HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56061 - "GET /api/roster/11/assignments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56060 - "GET /api/roster/11/detail HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56062 - "GET /api/roster/11/conflicts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52008 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52009 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:50466 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50467 - "GET /api/roster/current HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50468 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 201 Created
+INFO:     127.0.0.1:59323 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59324 - "POST /api/roster/generate?week_cycle_id=1 HTTP/1.1" 201 Created

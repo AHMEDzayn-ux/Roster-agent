@@ -43,6 +43,7 @@ export interface ShiftTemplate {
   start_time: string
   end_time: string
   break_duration_minutes: number | null
+  max_agents: number | null
 }
 
 export interface CoverageRequirement {
@@ -66,6 +67,7 @@ export interface Agent {
   default_off_day: number | null
   default_off_days_per_week: number
   skill_ids: number[]
+  possible_shift_ids: number[]
 }
 
 export interface WeeklyCycle {

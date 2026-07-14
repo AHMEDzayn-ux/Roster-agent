@@ -29,6 +29,17 @@ from app.solver.model import (
 
 SOLVER_ELIGIBLE_STATUSES = (RequestStatus.pending, RequestStatus.approved)
 
+# Coverage minimums are a *soft* target (spec: "you don't have to strictly
+# maintain minimum agents") — they degrade gracefully instead of ever making
+# generation infeasible, and the hard weekly-rest / fixed-off-day rules always
+# win over them. But they still outrank every optional request (weighted above
+# leave, the highest request weight), so the solver only denies a leave/off-day
+# request when honoring it would actually leave a coverage slot short — matching
+# the prior behavior, just without hard-failing when coverage can't be met.
+# Kept as a module constant rather than a solver_weights column since it isn't
+# manager-tunable in this slice.
+COVERAGE_SHORTFALL_WEIGHT = 500.0
+
 _SEVERITY_BY_TYPE = {
     RequestType.leave_full: ConflictSeverity.critical,
     RequestType.leave_half: ConflictSeverity.critical,
@@ -70,7 +81,7 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
 
     agents = (
         db.query(Agent)
-        .options(joinedload(Agent.skill_links))
+        .options(joinedload(Agent.skill_links), joinedload(Agent.possible_shift_links))
         .filter(Agent.active.is_(True))
         .all()
     )
@@ -87,6 +98,13 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
     )
     weights_row = get_or_create_solver_weights(db)
 
+    # First-come-first-serve rank: earliest submission = rank 0. Used only as a
+    # deterministic tie-breaker inside the solver (see SolverRequest.submitted_rank).
+    rank_by_id = {
+        r.id: i
+        for i, r in enumerate(sorted(requests, key=lambda r: (r.created_at, r.id)))
+    }
+
     solver_input = SolverInput(
         week_start_date=cycle.week_start_date,
         agents=[
@@ -96,10 +114,15 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
                 default_shift_id=a.default_shift_id,
                 default_off_day_type=a.default_off_day_type.value,
                 default_off_day=a.default_off_day,
+                default_off_days_per_week=a.default_off_days_per_week,
+                possible_shift_ids=[link.shift_template_id for link in a.possible_shift_links],
             )
             for a in agents
         ],
-        shifts=[SolverShift(id=s.id, start_time=s.start_time, end_time=s.end_time) for s in shifts],
+        shifts=[
+            SolverShift(id=s.id, start_time=s.start_time, end_time=s.end_time, max_agents=s.max_agents)
+            for s in shifts
+        ],
         coverage_requirements=[
             SolverCoverageRequirement(
                 day_of_week=c.day_of_week,
@@ -118,6 +141,7 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
                 start_date=r.requested_start_date,
                 end_date=r.requested_end_date,
                 requested_shift_id=r.requested_shift_id,
+                submitted_rank=rank_by_id[r.id],
             )
             for r in requests
         ],
@@ -128,6 +152,7 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
             shift_change=_scale_weight(weights_row.shift_change_weight),
             overtime=_scale_weight(weights_row.overtime_weight),
             fairness=_scale_weight(weights_row.fairness_weight),
+            coverage=_scale_weight(COVERAGE_SHORTFALL_WEIGHT),
         ),
     )
 

@@ -12,6 +12,10 @@ def get_leave_balance(db: Session, agent_id: int, year: int) -> LeaveBalance | N
     )
 
 
+def list_leave_balances(db: Session, year: int) -> list[LeaveBalance]:
+    return db.query(LeaveBalance).filter(LeaveBalance.year == year).all()
+
+
 def create_leave_balance(db: Session, balance_in: LeaveBalanceCreate) -> LeaveBalance:
     balance = LeaveBalance(
         agent_id=balance_in.agent_id,

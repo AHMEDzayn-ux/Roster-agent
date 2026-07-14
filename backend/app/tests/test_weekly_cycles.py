@@ -7,8 +7,11 @@ def _next_monday(weeks_ahead: int = 1) -> date:
     return today + timedelta(days=days_until_monday + 7 * (weeks_ahead - 1))
 
 
-def _utc_at(d: date, days_offset: int, t: time) -> datetime:
-    return datetime.combine(d + timedelta(days=days_offset), t, tzinfo=timezone.utc)
+_LOCAL_TZ = timezone(timedelta(hours=5, minutes=30))
+
+
+def _local_at(d: date, days_offset: int, t: time) -> datetime:
+    return datetime.combine(d + timedelta(days=days_offset), t, tzinfo=_LOCAL_TZ).astimezone(timezone.utc)
 
 
 def test_create_weekly_cycle_computes_timeline(client, manager_headers):
@@ -19,10 +22,12 @@ def test_create_weekly_cycle_computes_timeline(client, manager_headers):
     assert response.status_code == 201
     body = response.json()
     assert body["status"] == "open"
-    assert datetime.fromisoformat(body["request_deadline"]) == _utc_at(monday, 3, time(23, 59, 59))
-    assert datetime.fromisoformat(body["publish_date"]) == _utc_at(monday, 4, time(0, 0, 0))
-    assert datetime.fromisoformat(body["appeal_deadline"]) == _utc_at(monday, 4, time(23, 59, 59))
-    assert datetime.fromisoformat(body["lock_timestamp"]) == _utc_at(monday, 5, time(0, 0, 0))
+    # Lead-time timeline: request window closes prev-week Thursday, publish prev-week
+    # Saturday 00:00 (Friday night), appeals close prev-week Sunday, hard lock Monday.
+    assert datetime.fromisoformat(body["request_deadline"]) == _local_at(monday, -4, time(0, 0, 0))
+    assert datetime.fromisoformat(body["publish_date"]) == _local_at(monday, -2, time(0, 0, 0))
+    assert datetime.fromisoformat(body["appeal_deadline"]) == _local_at(monday, -1, time(23, 59, 59))
+    assert datetime.fromisoformat(body["lock_timestamp"]) == _local_at(monday, 0, time(0, 0, 0))
 
 
 def test_create_weekly_cycle_rejects_non_monday(client, manager_headers):

@@ -16,6 +16,8 @@ from datetime import date, datetime, timedelta
 from io import BytesIO
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 from sqlalchemy.orm import Session, joinedload
 
 from app.crud.weekly_request import LEAVE_REQUEST_TYPES
@@ -34,6 +36,29 @@ from app.services.leave_balance_sync import LeaveBalanceSyncError, sync_leave_ba
 
 EXPORT_HEADERS = ["agent_id", "agent_name", "date", "shift_id", "shift_name", "skill_id", "skill_name"]
 IMPORT_REQUIRED_COLUMNS = {"agent_id", "date", "shift_id", "skill_id"}
+
+# Machine-readable sheet the re-upload/import path parses back. The first sheet
+# ("Roster") is the human-friendly grid; this one carries the raw ids.
+DATA_SHEET_NAME = "Data"
+
+# Light fills per shift so the grid reads like the Roster Workspace table
+# (kept close to the app's shift colours). Overnight uses a dark fill + white text.
+_SHIFT_FILLS = {
+    "Morning": "E0F2FE",
+    "Early Morning": "FEF3C7",
+    "Mid Morning": "CCFBF1",
+    "Afternoon": "EDE9FE",
+    "Evening": "FFE4E6",
+    "Overnight": "312E81",
+}
+_DEFAULT_SHIFT_FILL = "F1F5F9"
+_WHITE_FONT_SHIFTS = {"Overnight"}
+
+
+def _compact_12h(t) -> str:
+    """Bare 12-hour hour, matching the workspace: 12:00-21:00 -> '12-9'."""
+    hour = t.hour % 12
+    return str(12 if hour == 0 else hour)
 
 
 class RosterImportError(Exception):
@@ -71,8 +96,59 @@ def export_roster_workbook(db: Session, roster: Roster) -> Workbook:
         .all()
     )
     wb = Workbook()
-    ws = wb.active
+    _write_grid_sheet(wb.active, assignments)
+    _write_data_sheet(wb.create_sheet(DATA_SHEET_NAME), assignments)
+    wb.active = 0  # open on the human-friendly grid
+    return wb
+
+
+def _write_grid_sheet(ws, assignments: list[RosterAssignment]) -> None:
+    """The Roster Workspace layout: one row per agent, one column per day
+    (Mon–Sun), each cell the compact shift time (e.g. '12-9') colour-coded by
+    shift, 'OFF' where the agent isn't scheduled."""
     ws.title = "Roster"
+
+    dates = sorted({a.date for a in assignments})
+    agent_names = {a.agent_id: a.agent.name for a in assignments}
+    agents = sorted(agent_names.items(), key=lambda kv: kv[1])
+    by_agent_date = {(a.agent_id, a.date): a for a in assignments}
+
+    header_font = Font(bold=True)
+    header_fill = PatternFill("solid", fgColor="F1F5F9")
+    center = Alignment(horizontal="center", vertical="center")
+
+    ws.cell(row=1, column=1, value="Agent").font = header_font
+    ws.cell(row=1, column=1).fill = header_fill
+    for col, d in enumerate(dates, start=2):
+        cell = ws.cell(row=1, column=col, value=f"{d.strftime('%A')}\n{d.isoformat()}")
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    for r, (agent_id, name) in enumerate(agents, start=2):
+        ws.cell(row=r, column=1, value=name)
+        for col, d in enumerate(dates, start=2):
+            cell = ws.cell(row=r, column=col)
+            a = by_agent_date.get((agent_id, d))
+            if a is None:
+                cell.value = "OFF"
+                cell.font = Font(color="94A3B8")
+            else:
+                cell.value = f"{_compact_12h(a.shift.start_time)}-{_compact_12h(a.shift.end_time)}"
+                cell.fill = PatternFill("solid", fgColor=_SHIFT_FILLS.get(a.shift.name, _DEFAULT_SHIFT_FILL))
+                if a.shift.name in _WHITE_FONT_SHIFTS:
+                    cell.font = Font(color="FFFFFF")
+                cell.comment = None
+            cell.alignment = center
+
+    ws.column_dimensions["A"].width = 24
+    for col in range(2, len(dates) + 2):
+        ws.column_dimensions[get_column_letter(col)].width = 14
+    ws.freeze_panes = "B2"
+
+
+def _write_data_sheet(ws, assignments: list[RosterAssignment]) -> None:
+    """Machine-readable long format used by the re-upload/import path."""
     ws.append(EXPORT_HEADERS)
     for a in assignments:
         ws.append(
@@ -86,7 +162,6 @@ def export_roster_workbook(db: Session, roster: Roster) -> Workbook:
                 a.skill_covered.name,
             ]
         )
-    return wb
 
 
 def parse_import_file(file_bytes: bytes) -> list[ParsedAssignmentRow]:
@@ -97,7 +172,9 @@ def parse_import_file(file_bytes: bytes) -> list[ParsedAssignmentRow]:
             "Could not read the uploaded file as an Excel (.xlsx) workbook", status_code=400
         ) from exc
 
-    ws = wb.active
+    # Prefer the machine-readable "Data" sheet (the pretty grid is the first
+    # sheet now); fall back to the active sheet for older flat-format uploads.
+    ws = wb[DATA_SHEET_NAME] if DATA_SHEET_NAME in wb.sheetnames else wb.active
     rows = list(ws.iter_rows(values_only=True))
     if not rows:
         raise RosterImportError("The uploaded file is empty", status_code=400)
@@ -349,6 +426,42 @@ def revalidate_and_apply_import(
     )
 
 
+def _derive_skill_for_assignment(
+    db: Session, agent_id: int, shift_id: int, target_date: date
+) -> int:
+    """Pick which of the agent's own skills they'll cover on a manual assignment.
+    An override just needs a shift — the skill is inferred from the agent's skill
+    set (they always cover something they're trained in), preferring a skill that
+    actually has coverage demand on that shift's hours that day."""
+    held = [link.skill_id for link in db.query(AgentSkill).filter(AgentSkill.agent_id == agent_id).all()]
+    if not held:
+        raise RosterImportError(
+            f"Agent {agent_id} holds no skills, so they cannot be assigned to a shift", status_code=400
+        )
+    shift = db.query(ShiftTemplate).filter(ShiftTemplate.id == shift_id).first()
+    if shift is None:
+        raise RosterImportError(f"Shift template {shift_id} does not exist", status_code=400)
+
+    coverage_reqs = (
+        db.query(CoverageRequirement)
+        .filter(
+            CoverageRequirement.day_of_week == target_date.weekday(),
+            CoverageRequirement.skill_id.in_(held),
+        )
+        .all()
+    )
+    matching = [
+        req
+        for req in coverage_reqs
+        if shift_covers_slot(shift.start_time, shift.end_time, req.time_slot_start, req.time_slot_end)
+    ]
+    if matching:
+        # cover the most-demanded matching skill
+        matching.sort(key=lambda r: r.min_agents_required, reverse=True)
+        return matching[0].skill_id
+    return held[0]
+
+
 def apply_manual_override(
     db: Session,
     roster_id: int,
@@ -359,8 +472,10 @@ def apply_manual_override(
     reason: str,
     actor_id: int,
 ) -> ImportResult:
-    """Edit a single (agent, date) assignment directly — set shift_id/skill_id
-    to reassign, or both to None to unassign (give the agent that day off)."""
+    """Edit a single (agent, date) assignment directly — set shift_id to assign
+    the agent to that shift (the skill they cover is inferred from their own
+    skill set unless skill_id is given), or leave shift_id None to unassign
+    (give the agent that day off)."""
     roster = db.query(Roster).filter(Roster.id == roster_id).first()
     if roster is None:
         raise RosterImportError("Roster not found", status_code=404)
@@ -372,8 +487,11 @@ def apply_manual_override(
         for a in current
         if not (a.agent_id == agent_id and a.date == target_date)
     ]
-    if shift_id is not None and skill_id is not None:
-        rows.append(ParsedAssignmentRow(agent_id=agent_id, date=target_date, shift_id=shift_id, skill_id=skill_id))
+    if shift_id is not None:
+        resolved_skill = skill_id if skill_id is not None else _derive_skill_for_assignment(
+            db, agent_id, shift_id, target_date
+        )
+        rows.append(ParsedAssignmentRow(agent_id=agent_id, date=target_date, shift_id=shift_id, skill_id=resolved_skill))
 
     return apply_proposed_roster(
         db, roster, cycle, rows, reason, actor_id, action_type="roster_manual_override", require_reason=True

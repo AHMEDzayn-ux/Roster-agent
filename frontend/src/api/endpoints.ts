@@ -48,6 +48,7 @@ export const createShiftTemplate = (payload: {
   start_time: string
   end_time: string
   break_duration_minutes?: number | null
+  max_agents?: number | null
 }) => apiClient.post<ShiftTemplate>('/shift-templates', payload).then((r) => r.data)
 export const updateShiftTemplate = (id: number, payload: Partial<ShiftTemplate>) =>
   apiClient.patch<ShiftTemplate>(`/shift-templates/${id}`, payload).then((r) => r.data)
@@ -77,6 +78,8 @@ export const createWeeklyCycle = (weekStartDate: string) =>
   apiClient.post<WeeklyCycle>('/weekly-cycles', { week_start_date: weekStartDate }).then((r) => r.data)
 
 // --- leave balances ---
+export const listLeaveBalances = (year: number) =>
+  apiClient.get<LeaveBalance[]>('/leave-balance', { params: { year } }).then((r) => r.data)
 export const getMyLeaveBalance = (year?: number) =>
   apiClient.get<LeaveBalance>('/leave-balance/mine', { params: year ? { year } : {} }).then((r) => r.data)
 export const getAgentLeaveBalance = (agentId: number, year?: number) =>

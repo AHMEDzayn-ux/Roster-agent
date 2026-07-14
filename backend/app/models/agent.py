@@ -25,6 +25,9 @@ class Agent(Base):
 
     default_shift: Mapped["ShiftTemplate | None"] = relationship(foreign_keys=[default_shift_id])
     skill_links: Mapped[list["AgentSkill"]] = relationship(back_populates="agent", cascade="all, delete-orphan")
+    possible_shift_links: Mapped[list["AgentPossibleShift"]] = relationship(
+        back_populates="agent", cascade="all, delete-orphan"
+    )
 
 
 class AgentSkill(Base):
@@ -35,3 +38,15 @@ class AgentSkill(Base):
 
     agent: Mapped["Agent"] = relationship(back_populates="skill_links")
     skill: Mapped["Skill"] = relationship(back_populates="agent_links")
+
+
+class AgentPossibleShift(Base):
+    """Shifts an agent can occasionally be assigned to besides their default (e.g. covering overnight 1-2 days/week)."""
+
+    __tablename__ = "agent_possible_shifts"
+
+    agent_id: Mapped[int] = mapped_column(ForeignKey("agents.id"), primary_key=True)
+    shift_template_id: Mapped[int] = mapped_column(ForeignKey("shift_templates.id"), primary_key=True)
+
+    agent: Mapped["Agent"] = relationship(back_populates="possible_shift_links")
+    shift_template: Mapped["ShiftTemplate"] = relationship()

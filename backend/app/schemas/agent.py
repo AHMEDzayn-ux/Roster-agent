@@ -12,6 +12,7 @@ class AgentCreate(BaseModel):
     default_off_day: int | None = Field(default=None, ge=0, le=6, description="0=Monday ... 6=Sunday")
     default_off_days_per_week: int = 1
     skill_ids: list[int] = []
+    possible_shift_ids: list[int] = []
 
 
 class AgentUpdate(BaseModel):
@@ -23,6 +24,7 @@ class AgentUpdate(BaseModel):
     default_off_day: int | None = Field(default=None, ge=0, le=6)
     default_off_days_per_week: int | None = None
     skill_ids: list[int] | None = None
+    possible_shift_ids: list[int] | None = None
 
 
 class AgentOut(BaseModel):
@@ -35,5 +37,6 @@ class AgentOut(BaseModel):
     default_off_day: int | None
     default_off_days_per_week: int
     skill_ids: list[int] = []
+    possible_shift_ids: list[int] = []
 
     model_config = {"from_attributes": True}

@@ -4,6 +4,35 @@ from app.models.audit import AuditLog
 from app.models.weekly_request import WeeklyRequest
 
 
+def record_audit(
+    db: Session,
+    *,
+    actor_id: int | None,
+    action_type: str,
+    target_type: str,
+    target_id: int,
+    old_value: str | None = None,
+    new_value: str | None = None,
+    reason: str | None = None,
+    flush: bool = True,
+) -> AuditLog:
+    """Append an audit-trail entry for a sensitive operation. Does not commit —
+    the caller's transaction owns that; pass flush=False inside a bulk loop."""
+    entry = AuditLog(
+        actor_id=actor_id,
+        action_type=action_type,
+        target_type=target_type,
+        target_id=target_id,
+        old_value=old_value,
+        new_value=new_value,
+        reason=reason,
+    )
+    db.add(entry)
+    if flush:
+        db.flush()
+    return entry
+
+
 def list_audit_log(
     db: Session, action_type: str | None = None, target_type: str | None = None
 ) -> list[AuditLog]:

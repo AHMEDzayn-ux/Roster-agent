@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_manager
+from app.api.errors import delete_or_conflict
 from app.crud import coverage as crud
 from app.db.session import get_db
 from app.schemas.coverage import CoverageRequirementCreate, CoverageRequirementOut, CoverageRequirementUpdate
@@ -38,4 +39,4 @@ def delete_coverage_requirement(requirement_id: int, db: Session = Depends(get_d
     requirement = crud.get_coverage_requirement(db, requirement_id)
     if requirement is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Coverage requirement not found")
-    crud.delete_coverage_requirement(db, requirement)
+    delete_or_conflict(db, crud.delete_coverage_requirement, requirement, entity_name="coverage requirement")

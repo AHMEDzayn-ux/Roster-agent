@@ -10,7 +10,7 @@ def _next_monday(weeks_ahead: int = 1) -> date:
     return today + timedelta(days=days_until_monday + 7 * (weeks_ahead - 1))
 
 
-def _create_cycle(client, manager_headers, weeks_ahead: int = 1) -> dict:
+def _create_cycle(client, manager_headers, weeks_ahead: int = 2) -> dict:
     monday = _next_monday(weeks_ahead)
     return client.post(
         "/api/weekly-cycles", json={"week_start_date": monday.isoformat()}, headers=manager_headers
@@ -78,10 +78,17 @@ def test_export_returns_xlsx_matching_assignments(client, manager_headers):
     assert "spreadsheetml" in response.headers["content-type"]
 
     wb = load_workbook(BytesIO(response.content))
-    ws = wb.active
-    rows = list(ws.iter_rows(values_only=True))
-    header = rows[0]
-    assert header[:4] == ("agent_id", "agent_name", "date", "shift_id")
+    # First sheet is the human-friendly grid (agent rows x day columns).
+    grid = wb.active
+    assert grid.title == "Roster"
+    assert grid.cell(row=1, column=1).value == "Agent"
+    assert str(grid.cell(row=1, column=2).value).startswith("Monday")
+    assert grid.cell(row=2, column=1).value == agents[0]["name"]
+
+    # Second sheet keeps the machine-readable long format for re-upload.
+    data = wb["Data"]
+    rows = list(data.iter_rows(values_only=True))
+    assert rows[0][:4] == ("agent_id", "agent_name", "date", "shift_id")
     assert len(rows) >= 2  # header + at least 1 assignment
 
 

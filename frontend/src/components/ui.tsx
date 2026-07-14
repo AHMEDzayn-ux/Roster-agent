@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -93,6 +94,233 @@ const STATUS_COLORS: Record<string, string> = {
 export function StatusBadge({ status }: { status: string }) {
   const cls = STATUS_COLORS[status] ?? 'bg-slate-100 text-slate-700'
   return <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${cls}`}>{status}</span>
+}
+
+export function Table({ children }: { children: ReactNode }) {
+  return (
+    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+      <table className="min-w-full divide-y divide-slate-200 text-sm">{children}</table>
+    </div>
+  )
+}
+
+export function Thead({ children }: { children: ReactNode }) {
+  return <thead className="bg-slate-50">{children}</thead>
+}
+
+export function Th({ children, className = '' }: { children?: ReactNode; className?: string }) {
+  return (
+    <th className={`sticky top-0 z-10 bg-slate-50 px-2.5 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 ${className}`}>
+      {children}
+    </th>
+  )
+}
+
+export function Tbody({ children }: { children: ReactNode }) {
+  return <tbody className="divide-y divide-slate-100">{children}</tbody>
+}
+
+export function Tr({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <tr className={`hover:bg-slate-50 ${className}`}>{children}</tr>
+}
+
+export function Td({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <td className={`px-2.5 py-1 align-middle text-slate-700 ${className}`}>{children}</td>
+}
+
+export function ScrollTable({ children, maxHeight = 'calc(100vh - 320px)' }: { children: ReactNode; maxHeight?: string }) {
+  return (
+    <div className="overflow-auto rounded-lg border border-slate-200 bg-white shadow-sm" style={{ maxHeight }}>
+      <table className="min-w-full divide-y divide-slate-200 text-sm">{children}</table>
+    </div>
+  )
+}
+
+/** Toolbar with Edit / Save / Cancel toggle for inline-editable tables. */
+export function EditBar({
+  editing,
+  dirtyCount,
+  saving,
+  onEdit,
+  onSave,
+  onCancel,
+}: {
+  editing: boolean
+  dirtyCount: number
+  saving: boolean
+  onEdit: () => void
+  onSave: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="mb-2 flex items-center justify-end gap-2">
+      {editing ? (
+        <>
+          <span className="text-xs text-slate-500">{dirtyCount > 0 ? `${dirtyCount} unsaved change${dirtyCount === 1 ? '' : 's'}` : 'Click any cell to edit'}</span>
+          <Button variant="secondary" onClick={onCancel} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={onSave} disabled={saving || dirtyCount === 0}>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </>
+      ) : (
+        <Button variant="secondary" onClick={onEdit}>
+          Edit table
+        </Button>
+      )}
+    </div>
+  )
+}
+
+const cellInputClass =
+  'w-full rounded border border-slate-300 bg-white px-1.5 py-0.5 text-sm focus:border-slate-500 focus:outline-none'
+
+export function CellText({
+  editing,
+  value,
+  onChange,
+  placeholder,
+}: {
+  editing: boolean
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
+  if (!editing) return <>{value || <span className="text-slate-400">—</span>}</>
+  return <input className={cellInputClass} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+}
+
+export function CellNumber({
+  editing,
+  value,
+  onChange,
+  step,
+}: {
+  editing: boolean
+  value: number | null
+  onChange: (v: number | null) => void
+  step?: string
+}) {
+  if (!editing) return <>{value ?? <span className="text-slate-400">—</span>}</>
+  return (
+    <input
+      type="number"
+      step={step}
+      className={`${cellInputClass} w-20`}
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+    />
+  )
+}
+
+export function CellTime({ editing, value, onChange }: { editing: boolean; value: string; onChange: (v: string) => void }) {
+  if (!editing) return <>{value}</>
+  return <input type="time" className={`${cellInputClass} w-28`} value={value} onChange={(e) => onChange(e.target.value)} />
+}
+
+export function CellSelect<T extends string | number>({
+  editing,
+  value,
+  onChange,
+  options,
+  display,
+}: {
+  editing: boolean
+  value: T
+  onChange: (v: T) => void
+  options: { value: T; label: string }[]
+  display?: string
+}) {
+  if (!editing) return <>{display ?? options.find((o) => o.value === value)?.label ?? String(value)}</>
+  return (
+    <select
+      className={cellInputClass}
+      value={String(value)}
+      onChange={(e) => {
+        const raw = e.target.value
+        const match = options.find((o) => String(o.value) === raw)
+        if (match) onChange(match.value)
+      }}
+    >
+      {options.map((o) => (
+        <option key={String(o.value)} value={String(o.value)}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+export function CellCheckbox({ editing, checked, onChange, label }: { editing: boolean; checked: boolean; onChange: (v: boolean) => void; label?: string }) {
+  if (!editing) return checked ? <span className="text-green-600">✓</span> : <span className="text-slate-300">—</span>
+  return (
+    <label className="inline-flex items-center gap-1">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
+  )
+}
+
+/** Compact multi-select: read-only shows a count/summary; editing shows a popover of ticks. */
+export function CellMultiSelect({
+  editing,
+  selected,
+  onChange,
+  options,
+}: {
+  editing: boolean
+  selected: number[]
+  onChange: (ids: number[]) => void
+  options: { id: number; label: string }[]
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const labels = selected.map((id) => options.find((o) => o.id === id)?.label ?? `#${id}`)
+
+  if (!editing) {
+    return labels.length ? (
+      <span title={labels.join(', ')}>{labels.length <= 2 ? labels.join(', ') : `${labels.length} skills`}</span>
+    ) : (
+      <span className="text-slate-400">—</span>
+    )
+  }
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        type="button"
+        className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-left text-sm hover:bg-slate-50"
+        onClick={() => setOpen((o) => !o)}
+      >
+        {selected.length ? `${selected.length} selected` : 'Select…'} ▾
+      </button>
+      {open && (
+        <div className="absolute z-20 mt-1 max-h-56 w-64 overflow-auto rounded-md border border-slate-300 bg-white p-1.5 shadow-lg">
+          {options.map((o) => (
+            <label key={o.id} className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-sm hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={selected.includes(o.id)}
+                onChange={(e) => onChange(e.target.checked ? [...selected, o.id] : selected.filter((id) => id !== o.id))}
+              />
+              {o.label}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function LoadingText({ text = 'Loading…' }: { text?: string }) {

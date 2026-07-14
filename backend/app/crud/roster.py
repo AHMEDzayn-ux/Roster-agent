@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,10 @@ def get_roster(db: Session, roster_id: int) -> Roster | None:
     return db.query(Roster).filter(Roster.id == roster_id).first()
 
 
-def get_public_roster_for_week(db: Session, week_start_date: date) -> Roster | None:
+def get_public_roster_for_week(db: Session, any_date_in_week: date) -> Roster | None:
+    # Roster search is by week (Monday-Sunday), not by exact date — resolve
+    # whatever date was given to that week's Monday before matching.
+    week_start_date = any_date_in_week - timedelta(days=any_date_in_week.weekday())
     return (
         db.query(Roster)
         .join(WeeklyCycle, Roster.week_cycle_id == WeeklyCycle.id)

@@ -24,6 +24,11 @@ def get_my_leave_balance(
     return balance
 
 
+@router.get("", response_model=list[LeaveBalanceOut], dependencies=[Depends(require_manager)])
+def list_leave_balances(year: int = date.today().year, db: Session = Depends(get_db)) -> list[LeaveBalanceOut]:
+    return crud.list_leave_balances(db, year)
+
+
 @router.get("/{agent_id}", response_model=LeaveBalanceOut, dependencies=[Depends(require_manager)])
 def get_agent_leave_balance(agent_id: int, year: int = date.today().year, db: Session = Depends(get_db)) -> LeaveBalanceOut:
     balance = crud.get_leave_balance(db, agent_id, year)

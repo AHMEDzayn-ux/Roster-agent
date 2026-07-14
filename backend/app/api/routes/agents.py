@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_manager
+from app.api.errors import delete_or_conflict
 from app.crud import agent as crud
 from app.db.session import get_db
 from app.models.agent import Agent
@@ -21,6 +22,7 @@ def _to_out(agent: Agent) -> AgentOut:
         default_off_day=agent.default_off_day,
         default_off_days_per_week=agent.default_off_days_per_week,
         skill_ids=[link.skill_id for link in agent.skill_links],
+        possible_shift_ids=[link.shift_template_id for link in agent.possible_shift_links],
     )
 
 
@@ -49,4 +51,4 @@ def delete_agent(agent_id: int, db: Session = Depends(get_db)) -> None:
     agent = crud.get_agent(db, agent_id)
     if agent is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found")
-    crud.delete_agent(db, agent)
+    delete_or_conflict(db, crud.delete_agent, agent, entity_name="agent")

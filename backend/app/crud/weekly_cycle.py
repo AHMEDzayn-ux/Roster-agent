@@ -29,22 +29,33 @@ def get_current_weekly_cycle(db: Session) -> WeeklyCycle | None:
     )
 
 
-def _at_utc(d, days_offset: int, t: time) -> datetime:
-    return datetime.combine(d + timedelta(days=days_offset), t, tzinfo=timezone.utc)
+# Sri Lanka (Asia/Colombo) is a fixed UTC+5:30 offset year-round (no DST), so a
+# fixed-offset tz is exact. Deadlines are authored as local wall-clock times and
+# stored as UTC instants, so they render as the intended Sri Lanka clock time.
+LOCAL_TZ = timezone(timedelta(hours=5, minutes=30))
+
+
+def _local_to_utc(d, days_offset: int, t: time) -> datetime:
+    """Wall-clock `t` on `d + days_offset` in local (Sri Lanka) time, returned as
+    a UTC-aware datetime for storage and comparison."""
+    return datetime.combine(d + timedelta(days=days_offset), t, tzinfo=LOCAL_TZ).astimezone(timezone.utc)
 
 
 def create_weekly_cycle(db: Session, cycle_in: WeeklyCycleCreate) -> WeeklyCycle:
     week_start = cycle_in.week_start_date
+    # Lead-time timeline: everything is settled in the week BEFORE the roster week
+    # begins, so agents know their shifts in advance. Offsets are counted from the
+    # roster week's Monday (week_start).
     cycle = WeeklyCycle(
         week_start_date=week_start,
-        # Thursday end-of-day: request window closes
-        request_deadline=_at_utc(week_start, 3, time(23, 59, 59)),
-        # Friday start-of-day: roster generation/publish day
-        publish_date=_at_utc(week_start, 4, time(0, 0, 0)),
-        # Friday end-of-day: appeal window closes
-        appeal_deadline=_at_utc(week_start, 4, time(23, 59, 59)),
-        # Saturday midnight: automatic hard lock
-        lock_timestamp=_at_utc(week_start, 5, time(0, 0, 0)),
+        # Previous-week Thursday 00:00 local: request window closes.
+        request_deadline=_local_to_utc(week_start, -4, time(0, 0, 0)),
+        # Previous-week Saturday 00:00 local (Friday night): roster publish.
+        publish_date=_local_to_utc(week_start, -2, time(0, 0, 0)),
+        # Previous-week Sunday end-of-day local: appeal window closes.
+        appeal_deadline=_local_to_utc(week_start, -1, time(23, 59, 59)),
+        # Roster-week Monday 00:00 local: automatic hard lock as the week begins.
+        lock_timestamp=_local_to_utc(week_start, 0, time(0, 0, 0)),
         status=WeeklyCycleStatus.open,
     )
     db.add(cycle)

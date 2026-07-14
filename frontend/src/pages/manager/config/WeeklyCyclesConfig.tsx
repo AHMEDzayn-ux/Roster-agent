@@ -2,7 +2,22 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { extractErrorMessage } from '../../../api/client'
 import { createWeeklyCycle, listWeeklyCycles } from '../../../api/endpoints'
-import { Button, Card, EmptyState, ErrorBanner, Field, Input, LoadingText, StatusBadge } from '../../../components/ui'
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorBanner,
+  Field,
+  Input,
+  LoadingText,
+  StatusBadge,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from '../../../components/ui'
 
 export default function WeeklyCyclesConfig() {
   const queryClient = useQueryClient()
@@ -48,20 +63,28 @@ export default function WeeklyCyclesConfig() {
       {query.isLoading && <LoadingText />}
       {query.data && query.data.length === 0 && <EmptyState text="No weekly cycles yet." />}
       {query.data && query.data.length > 0 && (
-        <div className="space-y-2">
-          {query.data.map((c) => (
-            <Card key={c.id} className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-800">Week of {c.week_start_date}</p>
-                <p className="text-sm text-slate-500">
-                  Requests close {new Date(c.request_deadline).toLocaleString()} · Locks{' '}
-                  {new Date(c.lock_timestamp).toLocaleString()}
-                </p>
-              </div>
-              <StatusBadge status={c.status} />
-            </Card>
-          ))}
-        </div>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Week start</Th>
+              <Th>Request deadline</Th>
+              <Th>Lock timestamp</Th>
+              <Th>Status</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {query.data.map((c) => (
+              <Tr key={c.id}>
+                <Td className="font-medium text-slate-800">{c.week_start_date}</Td>
+                <Td>{new Date(c.request_deadline).toLocaleString()}</Td>
+                <Td>{new Date(c.lock_timestamp).toLocaleString()}</Td>
+                <Td>
+                  <StatusBadge status={c.status} />
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
       )}
     </div>
   )

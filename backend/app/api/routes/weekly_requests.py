@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_manager
 from app.crud import weekly_request as crud
+from app.crud.audit import record_audit
 from app.crud.weekly_request import WeeklyRequestError
 from app.db.session import get_db
 from app.models.enums import UserRole
@@ -51,12 +52,30 @@ def list_requests(week: int | None = None, db: Session = Depends(get_db)) -> lis
     return crud.list_requests(db, week_cycle_id=week)
 
 
-@router.patch("/{request_id}", response_model=WeeklyRequestOut, dependencies=[Depends(require_manager)])
-def review_request(request_id: int, payload: WeeklyRequestReview, db: Session = Depends(get_db)) -> WeeklyRequestOut:
+@router.patch("/{request_id}", response_model=WeeklyRequestOut)
+def review_request(
+    request_id: int,
+    payload: WeeklyRequestReview,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_manager),
+) -> WeeklyRequestOut:
     request = crud.get_request(db, request_id)
     if request is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found")
+    old_status = request.status.value
     try:
-        return crud.review_request(db, request, payload)
+        reviewed = crud.review_request(db, request, payload)
     except WeeklyRequestError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+    record_audit(
+        db,
+        actor_id=current_user.id,
+        action_type="request_denied",
+        target_type="weekly_request",
+        target_id=reviewed.id,
+        old_value=old_status,
+        new_value=reviewed.status.value,
+        reason=reviewed.denial_reason,
+    )
+    db.commit()
+    return reviewed

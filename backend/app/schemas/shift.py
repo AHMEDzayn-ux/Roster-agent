@@ -8,6 +8,7 @@ class ShiftTemplateCreate(BaseModel):
     start_time: time
     end_time: time
     break_duration_minutes: int | None = None
+    max_agents: int | None = None
 
 
 class ShiftTemplateUpdate(BaseModel):
@@ -15,6 +16,7 @@ class ShiftTemplateUpdate(BaseModel):
     start_time: time | None = None
     end_time: time | None = None
     break_duration_minutes: int | None = None
+    max_agents: int | None = None
 
 
 class ShiftTemplateOut(BaseModel):
@@ -23,5 +25,6 @@ class ShiftTemplateOut(BaseModel):
     start_time: time
     end_time: time
     break_duration_minutes: int | None
+    max_agents: int | None
 
     model_config = {"from_attributes": True}

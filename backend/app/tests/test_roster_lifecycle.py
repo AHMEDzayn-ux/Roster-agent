@@ -9,7 +9,7 @@ def _next_monday(weeks_ahead: int = 1) -> date:
     return today + timedelta(days=days_until_monday + 7 * (weeks_ahead - 1))
 
 
-def _create_cycle(client, manager_headers, weeks_ahead: int = 1) -> dict:
+def _create_cycle(client, manager_headers, weeks_ahead: int = 2) -> dict:
     monday = _next_monday(weeks_ahead)
     return client.post(
         "/api/weekly-cycles", json={"week_start_date": monday.isoformat()}, headers=manager_headers
@@ -135,6 +135,74 @@ def test_auto_lock_skips_cycles_not_yet_due(client, manager_headers, db_session)
 
     locked_ids = auto_lock_due_cycles(db_session)
     assert cycle["id"] not in locked_ids
+
+
+def _make_publishable_now(db_session, cycle_id: int) -> None:
+    """Move publish_date into the past (lock still in the future) so the cycle is
+    'due' for auto-publish."""
+    db_cycle = db_session.query(WeeklyCycle).filter(WeeklyCycle.id == cycle_id).first()
+    db_cycle.publish_date = datetime.now(timezone.utc) - timedelta(minutes=1)
+    db_cycle.lock_timestamp = datetime.now(timezone.utc) + timedelta(days=1)
+    db_session.commit()
+
+
+def test_auto_publish_publishes_conflict_free_cycle(client, manager_headers, db_session):
+    from app.services.roster_lifecycle import auto_publish_due_cycles
+
+    cycle = _create_cycle(client, manager_headers)
+    # No requests -> generated roster has zero conflicts.
+    _generate_roster(client, manager_headers, cycle)
+    _make_publishable_now(db_session, cycle["id"])
+
+    result = auto_publish_due_cycles(db_session)
+    assert cycle["id"] in result["published"]
+    assert cycle["id"] not in result["held"]
+
+    updated = client.get("/api/weekly-cycles", headers=manager_headers).json()
+    assert next(c for c in updated if c["id"] == cycle["id"])["status"] == "published"
+
+
+def test_auto_publish_holds_cycle_with_conflicts(client, manager_headers, agent_headers, agent_record, db_session):
+    from app.services.roster_lifecycle import auto_publish_due_cycles
+
+    cycle = _create_cycle(client, manager_headers)
+    skill = _create_skill(client, manager_headers)
+    shift = _create_shift(client, manager_headers)
+    client.patch(
+        f"/api/agents/{agent_record.id}",
+        json={"default_shift_id": shift["id"], "skill_ids": [skill["id"]]},
+        headers=manager_headers,
+    )
+    # Sole agent for a slot they ask off -> off-day request must be denied = a conflict.
+    client.post(
+        "/api/coverage-requirements",
+        json={"day_of_week": 0, "time_slot_start": "09:00:00", "time_slot_end": "17:00:00",
+              "skill_id": skill["id"], "min_agents_required": 1},
+        headers=manager_headers,
+    )
+    client.post(
+        "/api/requests",
+        json={"week_cycle_id": cycle["id"], "request_type": "off_day", "requested_start_date": cycle["week_start_date"]},
+        headers=agent_headers,
+    )
+    _make_publishable_now(db_session, cycle["id"])
+
+    result = auto_publish_due_cycles(db_session)
+    assert cycle["id"] in result["held"]
+    assert cycle["id"] not in result["published"]
+
+    # Left as an unpublished draft, not pushed out.
+    updated = client.get("/api/weekly-cycles", headers=manager_headers).json()
+    assert next(c for c in updated if c["id"] == cycle["id"])["status"] == "open"
+
+
+def test_auto_publish_skips_cycle_before_publish_date(client, manager_headers, db_session):
+    from app.services.roster_lifecycle import auto_publish_due_cycles
+
+    cycle = _create_cycle(client, manager_headers)  # publish_date is still in the future
+    result = auto_publish_due_cycles(db_session)
+    assert cycle["id"] not in result["published"]
+    assert cycle["id"] not in result["held"]
 
 
 def test_public_endpoints_hide_draft_and_show_published(client, manager_headers):

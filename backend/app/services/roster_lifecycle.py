@@ -1,9 +1,12 @@
-"""Weekly-cycle publish/lock timeline (spec §2.2): Friday publish, Saturday
-midnight auto-lock. Locking is an automatic hard cutoff driven by
-scripts/auto_lock_cycles.py (meant to run on a schedule, e.g. cron/systemd
-timer, outside the web process so it doesn't interfere with app/test
-lifecycles); POST /api/roster/{id}/lock exists as the spec-mandated
-admin-triggerable equivalent for manual use and testing.
+"""Weekly-cycle publish/lock timeline (lead-time schedule): the roster is
+published the Friday night (Saturday 00:00) before the roster week and hard-locks
+as the week begins (Monday 00:00). Both are automatic, driven by scheduled
+scripts outside the web process (auto_publish_cycles.py / auto_lock_cycles.py, run
+on a cron/systemd timer so they don't interfere with app/test lifecycles).
+Auto-publish only publishes a conflict-free roster; anything with unmet requests
+is left as a draft for the manager. POST /api/roster/{id}/publish and
+/api/roster/{id}/lock remain the admin-triggerable equivalents for manual use and
+testing.
 """
 from datetime import datetime, timezone
 
@@ -55,6 +58,65 @@ def lock_roster(db: Session, roster_id: int) -> Roster:
     db.commit()
     db.refresh(roster)
     return roster
+
+
+def auto_publish_due_cycles(db: Session) -> dict[str, list[int]]:
+    """Saturday-00:00 auto-publish (spec: publish Friday night). For every open
+    cycle whose publish_date has passed but which isn't locked yet, ensure a draft
+    roster exists (generating one if the manager hasn't) and publish it ONLY when
+    it has zero conflicts. A roster with any unmet request is left as a draft for
+    the manager to review — nothing unreviewed goes out.
+
+    Idempotent: a cycle already published/locked is skipped, and a held draft with
+    conflicts is re-checked (not duplicated) on later runs. Returns which cycles
+    were published vs. held for review.
+
+    Meant to run on a schedule (cron/systemd) via scripts/auto_publish_cycles.py,
+    kept outside the web process like auto_lock_due_cycles."""
+    from app.models.roster import ConflictReport
+    from app.solver.service import RosterGenerationError, generate_roster
+
+    now = datetime.now(timezone.utc)
+    due_cycles = (
+        db.query(WeeklyCycle)
+        .filter(
+            WeeklyCycle.status == WeeklyCycleStatus.open,
+            WeeklyCycle.publish_date <= now,
+            WeeklyCycle.lock_timestamp > now,
+        )
+        .all()
+    )
+
+    published_ids: list[int] = []
+    held_ids: list[int] = []
+    for cycle in due_cycles:
+        roster = (
+            db.query(Roster)
+            .filter(Roster.week_cycle_id == cycle.id)
+            .order_by(Roster.id.desc())
+            .first()
+        )
+        # Reuse the manager's latest draft if present; otherwise generate one.
+        if roster is None:
+            try:
+                roster = generate_roster(db, cycle.id)
+            except RosterGenerationError:
+                held_ids.append(cycle.id)
+                continue
+        elif roster.status != RosterStatus.draft:
+            # Already published/locked for this cycle — nothing to do.
+            continue
+
+        conflict_count = (
+            db.query(ConflictReport).filter(ConflictReport.roster_id == roster.id).count()
+        )
+        if conflict_count == 0:
+            publish_roster(db, roster.id)
+            published_ids.append(cycle.id)
+        else:
+            held_ids.append(cycle.id)
+
+    return {"published": published_ids, "held": held_ids}
 
 
 def auto_lock_due_cycles(db: Session) -> list[int]:

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_manager
+from app.api.errors import delete_or_conflict
 from app.crud import skill as crud
 from app.db.session import get_db
 from app.schemas.skill import SkillCreate, SkillOut, SkillUpdate
@@ -32,4 +33,4 @@ def delete_skill(skill_id: int, db: Session = Depends(get_db)) -> None:
     skill = crud.get_skill(db, skill_id)
     if skill is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Skill not found")
-    crud.delete_skill(db, skill)
+    delete_or_conflict(db, crud.delete_skill, skill, entity_name="skill")

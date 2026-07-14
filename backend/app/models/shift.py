@@ -14,3 +14,6 @@ class ShiftTemplate(Base):
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
     break_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Hard cap on how many agents may be scheduled on this shift on any single
+    # day (e.g. Overnight = 2). NULL means no cap.
+    max_agents: Mapped[int | None] = mapped_column(Integer, nullable=True)

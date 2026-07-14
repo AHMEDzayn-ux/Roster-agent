@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_manager
 from app.crud import roster as crud
+from app.crud.audit import record_audit
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.roster import (
@@ -31,11 +32,23 @@ router = APIRouter(prefix="/api/roster", tags=["roster"], dependencies=[Depends(
 
 
 @router.post("/generate", response_model=RosterGenerateResponse, status_code=status.HTTP_201_CREATED)
-def generate(week_cycle_id: int, db: Session = Depends(get_db)) -> RosterGenerateResponse:
+def generate(
+    week_cycle_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_manager)
+) -> RosterGenerateResponse:
     try:
         roster = generate_roster(db, week_cycle_id)
     except RosterGenerationError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+    record_audit(
+        db,
+        actor_id=current_user.id,
+        action_type="roster_generated",
+        target_type="roster",
+        target_id=roster.id,
+        new_value=f"draft for weekly cycle {week_cycle_id}",
+    )
+    db.commit()
 
     return RosterGenerateResponse(
         roster=roster,
@@ -54,19 +67,43 @@ def get_roster(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
 
 
 @router.post("/{roster_id}/publish", response_model=RosterOut)
-def publish(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
+def publish(
+    roster_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_manager)
+) -> RosterOut:
     try:
-        return publish_roster(db, roster_id)
+        roster = publish_roster(db, roster_id)
     except RosterLifecycleError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+    record_audit(
+        db,
+        actor_id=current_user.id,
+        action_type="roster_published",
+        target_type="roster",
+        target_id=roster.id,
+        new_value="published",
+    )
+    db.commit()
+    return roster
 
 
 @router.post("/{roster_id}/lock", response_model=RosterOut)
-def lock(roster_id: int, db: Session = Depends(get_db)) -> RosterOut:
+def lock(
+    roster_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_manager)
+) -> RosterOut:
     try:
-        return lock_roster(db, roster_id)
+        roster = lock_roster(db, roster_id)
     except RosterLifecycleError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+    record_audit(
+        db,
+        actor_id=current_user.id,
+        action_type="roster_locked",
+        target_type="roster",
+        target_id=roster.id,
+        new_value="locked",
+    )
+    db.commit()
+    return roster
 
 
 @router.get("/{roster_id}/export")

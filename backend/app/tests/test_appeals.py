@@ -9,7 +9,7 @@ def _next_monday(weeks_ahead: int = 1) -> date:
     return today + timedelta(days=days_until_monday + 7 * (weeks_ahead - 1))
 
 
-def _create_cycle(client, manager_headers, weeks_ahead: int = 1) -> dict:
+def _create_cycle(client, manager_headers, weeks_ahead: int = 2) -> dict:
     monday = _next_monday(weeks_ahead)
     return client.post(
         "/api/weekly-cycles", json={"week_start_date": monday.isoformat()}, headers=manager_headers
