@@ -19,7 +19,7 @@ SHIFT = SolverShift(id=1, start_time=time(9, 0), end_time=time(17, 0))
 
 # coverage outranks every request weight (soft, but met whenever feasible)
 DEFAULT_WEIGHTS = SolverWeights(
-    off_day_request=60, default_off_day=40, leave=100, shift_change=20, overtime=15, fairness=10, coverage=500
+    off_day_request=60, leave=100, shift_change=20, overtime=15, fairness=10, coverage=500
 )
 
 

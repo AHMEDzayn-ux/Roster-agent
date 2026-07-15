@@ -41,6 +41,26 @@ def _local_to_utc(d, days_offset: int, t: time) -> datetime:
     return datetime.combine(d + timedelta(days=days_offset), t, tzinfo=LOCAL_TZ).astimezone(timezone.utc)
 
 
+def ensure_upcoming_cycles(db: Session, weeks_ahead: int = 3) -> list[WeeklyCycle]:
+    """Idempotently make sure a cycle exists for each of the next `weeks_ahead`
+    Mondays, so agents always have upcoming weeks open for requests without a
+    manager hand-creating each one. Skips weeks that already have a cycle and
+    never touches the current (already-started) week. Returns the cycles created
+    by this call. Meant to run daily via scripts/ensure_weekly_cycles.py."""
+    from datetime import date
+
+    today = date.today()
+    days_until_monday = (7 - today.weekday()) % 7 or 7  # strictly the NEXT Monday
+    first_monday = today + timedelta(days=days_until_monday)
+
+    created: list[WeeklyCycle] = []
+    for i in range(weeks_ahead):
+        monday = first_monday + timedelta(days=7 * i)
+        if get_weekly_cycle_by_week_start(db, monday) is None:
+            created.append(create_weekly_cycle(db, WeeklyCycleCreate(week_start_date=monday)))
+    return created
+
+
 def create_weekly_cycle(db: Session, cycle_in: WeeklyCycleCreate) -> WeeklyCycle:
     week_start = cycle_in.week_start_date
     # Lead-time timeline: everything is settled in the week BEFORE the roster week

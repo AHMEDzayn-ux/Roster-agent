@@ -8,7 +8,6 @@ import type { SolverWeights } from '../../../types'
 const LABELS: Record<keyof SolverWeights, string> = {
   leave_weight: 'Leave requests',
   off_day_request_weight: 'Off-day requests',
-  default_off_day_weight: "Agent's default off-day",
   shift_change_weight: 'Shift-change requests',
   overtime_weight: 'Overtime requests',
   fairness_weight: 'Fairness (spread denials across agents)',
@@ -44,8 +43,9 @@ export default function SolverConfig() {
     <Card className="max-w-xl">
       <h2 className="mb-1 font-medium text-slate-800">Soft-constraint priority weights</h2>
       <p className="mb-4 text-xs text-slate-500">
-        Higher weight = the solver works harder to honor it. Coverage and no-double-booking are always hard constraints
-        and are never weighted here.
+        Higher weight = the solver works harder to honor it. Coverage, no-double-booking, the one-rest-day-per-week rule,
+        and an agent's <strong>fixed</strong> off-day are always <strong>hard</strong> constraints — they are guaranteed
+        and never weighted here.
       </p>
       <ErrorBanner message={error} />
       <SuccessBanner message={success} />

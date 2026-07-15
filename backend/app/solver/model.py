@@ -88,7 +88,6 @@ class SolverRequest:
 @dataclass
 class SolverWeights:
     off_day_request: int
-    default_off_day: int
     leave: int
     shift_change: int
     overtime: int

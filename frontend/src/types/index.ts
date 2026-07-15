@@ -194,7 +194,6 @@ export interface AuditLogEntry {
 
 export interface SolverWeights {
   off_day_request_weight: number
-  default_off_day_weight: number
   leave_weight: number
   shift_change_weight: number
   overtime_weight: number

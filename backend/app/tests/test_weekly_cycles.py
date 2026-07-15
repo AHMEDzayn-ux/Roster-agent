@@ -59,3 +59,32 @@ def test_agent_can_view_current_cycle(client, manager_headers, agent_headers):
 def test_weekly_cycles_require_auth(client):
     response = client.get("/api/weekly-cycles")
     assert response.status_code == 401
+
+
+def test_ensure_upcoming_cycles_creates_horizon_and_is_idempotent(db_session):
+    from app.crud.weekly_cycle import ensure_upcoming_cycles
+
+    created = ensure_upcoming_cycles(db_session, weeks_ahead=3)
+    assert len(created) == 3
+    # All are future Mondays, none is the current (already-started) week.
+    mondays = [c.week_start_date for c in created]
+    assert all(m.weekday() == 0 for m in mondays)
+    assert all(m > date.today() for m in mondays)
+    assert mondays == sorted(mondays)
+
+    # Running again creates nothing (idempotent).
+    again = ensure_upcoming_cycles(db_session, weeks_ahead=3)
+    assert again == []
+
+
+def test_ensure_upcoming_cycles_fills_only_missing_weeks(client, manager_headers, db_session):
+    from app.crud.weekly_cycle import ensure_upcoming_cycles
+
+    # Manager has already hand-created the first upcoming Monday.
+    monday = _next_monday()
+    client.post("/api/weekly-cycles", json={"week_start_date": monday.isoformat()}, headers=manager_headers)
+
+    created = ensure_upcoming_cycles(db_session, weeks_ahead=3)
+    # That week is skipped; the other two are filled in.
+    assert monday not in [c.week_start_date for c in created]
+    assert len(created) == 2

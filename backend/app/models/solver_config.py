@@ -13,7 +13,6 @@ class SolverWeights(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     off_day_request_weight: Mapped[float] = mapped_column(Numeric(6, 2), default=60, nullable=False)
-    default_off_day_weight: Mapped[float] = mapped_column(Numeric(6, 2), default=40, nullable=False)
     leave_weight: Mapped[float] = mapped_column(Numeric(6, 2), default=100, nullable=False)
     shift_change_weight: Mapped[float] = mapped_column(Numeric(6, 2), default=20, nullable=False)
     overtime_weight: Mapped[float] = mapped_column(Numeric(6, 2), default=15, nullable=False)

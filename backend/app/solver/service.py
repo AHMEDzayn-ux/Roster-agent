@@ -147,7 +147,6 @@ def generate_roster(db: Session, week_cycle_id: int) -> Roster:
         ],
         weights=SolverWeights(
             off_day_request=_scale_weight(weights_row.off_day_request_weight),
-            default_off_day=_scale_weight(weights_row.default_off_day_weight),
             leave=_scale_weight(weights_row.leave_weight),
             shift_change=_scale_weight(weights_row.shift_change_weight),
             overtime=_scale_weight(weights_row.overtime_weight),
