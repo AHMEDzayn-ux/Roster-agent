@@ -102,10 +102,10 @@ export default function ShiftsConfig() {
 
   return (
     <div>
-      <details className="mb-3 rounded-lg border border-slate-200 bg-white shadow-sm">
-        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-slate-700">+ Add a shift template</summary>
-        <div className="border-t border-slate-100 p-3">
-          <p className="mb-3 text-xs text-slate-500">
+      <details className="mb-3 rounded-card border border-line bg-surface shadow-xs">
+        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-ink">+ Add a shift template</summary>
+        <div className="border-t border-line p-3">
+          <p className="mb-3 text-xs text-ink-muted">
             Shifts can overlap and can wrap past midnight (e.g. 21:00 → 06:00). Break time is for reporting only.
             <strong> Max/day</strong> is a hard cap on how many agents may be scheduled on this shift on any single day
             (e.g. Overnight = 2); leave blank for no cap.
@@ -171,7 +171,7 @@ export default function ShiftsConfig() {
             <Tbody>
               {rows.map((s) => (
                 <Tr key={s.id}>
-                  <Td className="font-medium text-slate-800">
+                  <Td className="font-medium text-ink">
                     <CellText editing={editing} value={s.name} onChange={(v) => updateRow(s.id, { name: v })} />
                   </Td>
                   <Td>
@@ -187,7 +187,7 @@ export default function ShiftsConfig() {
                     {editing ? (
                       <CellNumber editing value={s.max_agents} onChange={(v) => updateRow(s.id, { max_agents: v })} />
                     ) : s.max_agents == null ? (
-                      <span className="text-slate-400">∞</span>
+                      <span className="text-ink-subtle">∞</span>
                     ) : (
                       s.max_agents
                     )}

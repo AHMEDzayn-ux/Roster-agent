@@ -38,8 +38,8 @@ export default function WeeklyCyclesConfig() {
   return (
     <div>
       <Card className="mb-5">
-        <h2 className="mb-3 font-medium text-slate-800">Create a weekly cycle</h2>
-        <p className="mb-3 text-xs text-slate-500">
+        <h2 className="mb-3 font-medium text-ink">Create a weekly cycle</h2>
+        <p className="mb-3 text-xs text-ink-muted">
           Must be a Monday. The Thursday request deadline, Friday publish window, and Saturday-midnight auto-lock are all
           computed automatically.
         </p>
@@ -75,7 +75,7 @@ export default function WeeklyCyclesConfig() {
           <Tbody>
             {query.data.map((c) => (
               <Tr key={c.id}>
-                <Td className="font-medium text-slate-800">{c.week_start_date}</Td>
+                <Td className="font-medium text-ink">{c.week_start_date}</Td>
                 <Td>{new Date(c.request_deadline).toLocaleString()}</Td>
                 <Td>{new Date(c.lock_timestamp).toLocaleString()}</Td>
                 <Td>

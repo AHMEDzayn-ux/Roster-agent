@@ -14,15 +14,18 @@ export function compactShiftRange(start: string, end: string): string {
   return `${toCompact12h(start)}-${toCompact12h(end)}`
 }
 
+// Muted, low-saturation chips with a hairline border so shifts stay
+// distinguishable without turning the grid into a rainbow. Each entry pairs a
+// tinted surface with readable text at WCAG-AA contrast.
 export const SHIFT_COLORS: Record<string, string> = {
-  Morning: 'bg-sky-100 text-sky-800',
-  'Early Morning': 'bg-amber-100 text-amber-800',
-  'Mid Morning': 'bg-teal-100 text-teal-800',
-  Afternoon: 'bg-violet-100 text-violet-800',
-  Evening: 'bg-rose-100 text-rose-800',
-  Overnight: 'bg-indigo-900 text-white',
+  Morning: 'bg-sky-50 text-sky-700 border border-sky-200/70',
+  'Early Morning': 'bg-amber-50 text-amber-700 border border-amber-200/70',
+  'Mid Morning': 'bg-teal-50 text-teal-700 border border-teal-200/70',
+  Afternoon: 'bg-violet-50 text-violet-700 border border-violet-200/70',
+  Evening: 'bg-rose-50 text-rose-700 border border-rose-200/70',
+  Overnight: 'bg-slate-700 text-white border border-slate-700',
 }
-export const DEFAULT_SHIFT_COLOR = 'bg-slate-100 text-slate-700'
+export const DEFAULT_SHIFT_COLOR = 'bg-surface-muted text-ink-secondary border border-line'
 
 export function weekdayLabel(dateStr: string): string {
   const jsDay = new Date(`${dateStr}T00:00:00`).getDay()

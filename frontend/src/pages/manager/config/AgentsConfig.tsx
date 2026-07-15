@@ -161,9 +161,9 @@ export default function AgentsConfig() {
 
   return (
     <div>
-      <details className="mb-3 rounded-lg border border-slate-200 bg-white shadow-sm">
-        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-slate-700">+ Add an agent</summary>
-        <div className="border-t border-slate-100 p-3">
+      <details className="mb-3 rounded-card border border-line bg-surface shadow-xs">
+        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-ink">+ Add an agent</summary>
+        <div className="border-t border-line p-3">
           <ErrorBanner message={error} />
           <form
             onSubmit={(e) => {
@@ -206,10 +206,10 @@ export default function AgentsConfig() {
               <Input type="number" min={0} max={7} value={offDaysPerWeek} onChange={(e) => setOffDaysPerWeek(e.target.value)} />
             </Field>
             <div className="sm:col-span-2">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Skills</span>
+              <span className="mb-1 block text-xs font-medium text-ink-secondary">Skills</span>
               <div className="flex flex-wrap gap-2">
                 {skillsQuery.data?.map((s) => (
-                  <label key={s.id} className="flex items-center gap-1.5 rounded-md border border-slate-300 px-2 py-1 text-sm">
+                  <label key={s.id} className="flex items-center gap-1.5 rounded-md border border-line-strong px-2 py-1 text-sm">
                     <input
                       type="checkbox"
                       checked={skillIds.includes(s.id)}
@@ -237,7 +237,7 @@ export default function AgentsConfig() {
         <>
           <ErrorBanner message={editing ? error : null} />
 
-          <div className="mb-3 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="mb-3 flex flex-wrap items-end gap-3 rounded-card border border-line bg-surface p-3 shadow-xs">
             <div className="w-40">
               <Field label="Name">
                 <Input placeholder="Search name…" value={nameFilter} onChange={(e) => setNameFilter(e.target.value)} />
@@ -256,7 +256,7 @@ export default function AgentsConfig() {
               </Field>
             </div>
             <div className="w-56">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Possible shifts</span>
+              <span className="mb-1 block text-xs font-medium text-ink-secondary">Possible shifts</span>
               <CellMultiSelect editing selected={possibleShiftFilter} onChange={setPossibleShiftFilter} options={shiftMultiOptions} />
             </div>
             <div className="w-36">
@@ -281,7 +281,7 @@ export default function AgentsConfig() {
               </Field>
             </div>
             <div className="w-56">
-              <span className="mb-1 block text-xs font-medium text-slate-600">Skills (any match)</span>
+              <span className="mb-1 block text-xs font-medium text-ink-secondary">Skills (any match)</span>
               <CellMultiSelect editing selected={skillFilter} onChange={setSkillFilter} options={skillOptions} />
             </div>
             <div className="w-32">
@@ -298,7 +298,7 @@ export default function AgentsConfig() {
                 Clear filters
               </Button>
             )}
-            <span className="ml-auto text-xs text-slate-500">
+            <span className="ml-auto text-xs text-ink-muted">
               {filteredRows.length} of {rows.length} agents
             </span>
           </div>
@@ -332,7 +332,7 @@ export default function AgentsConfig() {
             <Tbody>
               {filteredRows.map((a) => (
                 <Tr key={a.id}>
-                  <Td className="font-medium text-slate-800">
+                  <Td className="font-medium text-ink">
                     <CellText editing={editing} value={a.name} onChange={(v) => updateRow(a.id, { name: v })} />
                   </Td>
                   <Td>
@@ -371,7 +371,7 @@ export default function AgentsConfig() {
                         display={WEEKDAY_NAMES[a.default_off_day ?? 0]}
                       />
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-ink-subtle">—</span>
                     )}
                   </Td>
                   <Td>

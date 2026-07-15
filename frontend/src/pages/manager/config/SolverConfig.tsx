@@ -41,8 +41,8 @@ export default function SolverConfig() {
 
   return (
     <Card className="max-w-xl">
-      <h2 className="mb-1 font-medium text-slate-800">Soft-constraint priority weights</h2>
-      <p className="mb-4 text-xs text-slate-500">
+      <h2 className="mb-1 font-medium text-ink">Soft-constraint priority weights</h2>
+      <p className="mb-4 text-xs text-ink-muted">
         Higher weight = the solver works harder to honor it. Coverage, no-double-booking, the one-rest-day-per-week rule,
         and an agent's <strong>fixed</strong> off-day are always <strong>hard</strong> constraints — they are guaranteed
         and never weighted here.

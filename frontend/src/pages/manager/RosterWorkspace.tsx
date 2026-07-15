@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AlertTriangle, Download, Lock, Send, Upload, Wand2 } from 'lucide-react'
 import { apiClient, extractErrorMessage } from '../../api/client'
 import {
   generateRoster,
@@ -19,22 +20,19 @@ import {
 import {
   Button,
   Card,
+  CardHeader,
   EmptyState,
   ErrorBanner,
   Field,
   Input,
   PageTitle,
-  ScrollTable,
   Select,
   StatusBadge,
   SuccessBanner,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  cn,
 } from '../../components/ui'
-import { DEFAULT_SHIFT_COLOR, SHIFT_COLORS, toCompact12h, weekdayLabel } from '../../lib/rosterGrid'
+import { OffChip, RosterGrid, ShiftChip, ShiftLegend } from '../../components/RosterGrid'
+import { DEFAULT_SHIFT_COLOR, SHIFT_COLORS, toCompact12h } from '../../lib/rosterGrid'
 import type { ConflictReport, RosterAssignment, SatisfactionMetric } from '../../types'
 
 export default function RosterWorkspace() {
@@ -70,6 +68,13 @@ export default function RosterWorkspace() {
     enabled: rosterId != null,
   })
 
+  function invalidateRosterQueries() {
+    queryClient.invalidateQueries({ queryKey: ['roster-assignments', rosterId] })
+    queryClient.invalidateQueries({ queryKey: ['roster-conflicts', rosterId] })
+    queryClient.invalidateQueries({ queryKey: ['roster-satisfaction', rosterId] })
+    queryClient.invalidateQueries({ queryKey: ['roster-detail', rosterId] })
+  }
+
   const generateMutation = useMutation({
     mutationFn: () => generateRoster(Number(cycleId)),
     onSuccess: (data) => {
@@ -101,13 +106,6 @@ export default function RosterWorkspace() {
     onError: (err) => setError(extractErrorMessage(err)),
   })
 
-  function invalidateRosterQueries() {
-    queryClient.invalidateQueries({ queryKey: ['roster-assignments', rosterId] })
-    queryClient.invalidateQueries({ queryKey: ['roster-conflicts', rosterId] })
-    queryClient.invalidateQueries({ queryKey: ['roster-satisfaction', rosterId] })
-    queryClient.invalidateQueries({ queryKey: ['roster-detail', rosterId] })
-  }
-
   // --- import ---
   const [importFile, setImportFile] = useState<File | null>(null)
   const [importReason, setImportReason] = useState('')
@@ -138,7 +136,6 @@ export default function RosterWorkspace() {
         agent_id: Number(ovAgentId),
         date: ovDate,
         shift_id: ovShiftId ? Number(ovShiftId) : null,
-        // skill is inferred from the agent's own skills on the backend
         skill_id: null,
         reason: ovReason,
       }),
@@ -180,22 +177,19 @@ export default function RosterWorkspace() {
   const shiftName = (id: number) => shiftsQuery.data?.find((s) => s.id === id)?.name ?? `#${id}`
   const skillName = (id: number) => skillsQuery.data?.find((s) => s.id === id)?.name ?? `#${id}`
 
-  const groupedAssignments = useMemo(() => {
-    const map = new Map<string, typeof assignmentsQuery.data>()
-    for (const a of assignmentsQuery.data ?? []) {
-      const list = map.get(a.date) ?? []
-      list.push(a)
-      map.set(a.date, list)
-    }
-    return new Map([...map.entries()].sort())
+  const gridDays = useMemo(() => {
+    const days = new Set<string>()
+    for (const a of assignmentsQuery.data ?? []) days.add(a.date)
+    return [...days].sort()
   }, [assignmentsQuery.data])
 
-  const gridDays = useMemo(() => [...groupedAssignments.keys()], [groupedAssignments])
-
-  const gridAgents = useMemo(() => {
+  const gridRows = useMemo(() => {
     const ids = new Set<number>()
     for (const a of assignmentsQuery.data ?? []) ids.add(a.agent_id)
-    return [...ids].map((id) => ({ id, name: agentName(id) })).sort((a, b) => a.name.localeCompare(b.name))
+    return [...ids]
+      .map((id) => ({ id, name: agentName(id) }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((a) => ({ key: String(a.id), name: a.name }))
   }, [assignmentsQuery.data, agentsQuery.data])
 
   const assignmentByAgentDate = useMemo(() => {
@@ -210,192 +204,190 @@ export default function RosterWorkspace() {
     return `${toCompact12h(shift.start_time)}-${toCompact12h(shift.end_time)}`
   }
 
+  // --- selected cell drives the override panel ---
+  const [selected, setSelected] = useState<{ rowKey: string; day: string } | null>(null)
+  useEffect(() => {
+    if (!selected) return
+    setOvAgentId(selected.rowKey)
+    setOvDate(selected.day)
+    const current = assignmentByAgentDate.get(`${selected.rowKey}|${selected.day}`)
+    setOvShiftId(current ? String(current.shift_id) : '')
+  }, [selected, assignmentByAgentDate])
+
+  const status = rosterQuery.data?.status
+  const conflicts = conflictsQuery.data ?? []
+  const criticalCount = conflicts.filter((c) => c.severity === 'critical').length
+
   return (
     <div>
-      <PageTitle subtitle="Generate the solver-driven roster, review conflicts and satisfaction, edit if needed, then publish and lock.">
+      <PageTitle subtitle="Generate the solver-driven roster, review conflicts, edit inline, then publish and lock.">
         Roster Workspace
       </PageTitle>
 
+      {/* Cycle / generate control */}
       <Card className="mb-5">
         <div className="flex flex-wrap items-end gap-3">
-          <Field label="Weekly cycle">
-            <Select value={cycleId} onChange={(e) => setCycleId(e.target.value)} className="w-64">
-              <option value="">Select a week…</option>
-              {cyclesQuery.data?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  Week of {c.week_start_date} ({c.status})
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Button disabled={!cycleId || generateMutation.isPending} onClick={() => generateMutation.mutate()}>
-            {generateMutation.isPending ? 'Generating…' : 'Generate roster'}
+          <div className="w-72">
+            <Field label="Weekly cycle">
+              <Select value={cycleId} onChange={(e) => setCycleId(e.target.value)}>
+                <option value="">Select a week…</option>
+                {cyclesQuery.data?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Week of {c.week_start_date} ({c.status})
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <Button
+            icon={Wand2}
+            disabled={!cycleId || generateMutation.isPending}
+            loading={generateMutation.isPending}
+            onClick={() => generateMutation.mutate()}
+          >
+            Generate roster
           </Button>
-          <Field label="Or load an existing roster by id">
-            <Input
-              type="number"
-              className="w-32"
-              value={rosterId ?? ''}
-              onChange={(e) => setRosterId(e.target.value ? Number(e.target.value) : null)}
-            />
-          </Field>
+          <div className="w-40">
+            <Field label="Load existing by ID">
+              <Input
+                type="number"
+                placeholder="Roster ID"
+                value={rosterId ?? ''}
+                onChange={(e) => setRosterId(e.target.value ? Number(e.target.value) : null)}
+              />
+            </Field>
+          </div>
         </div>
       </Card>
 
       <ErrorBanner message={error} />
       <SuccessBanner message={success} />
 
-      {rosterId != null && rosterQuery.data && (
+      {rosterId == null || !rosterQuery.data ? (
+        <EmptyState
+          title="No roster loaded"
+          text="Pick a weekly cycle and generate a roster, or load an existing one by ID to start reviewing."
+          icon={Wand2}
+        />
+      ) : (
         <>
-          <Card className="mb-5">
-            <div className="flex items-center justify-between">
+          {/* Roster action bar */}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 shadow-xs">
+            <div className="flex items-center gap-3">
               <div>
-                <p className="font-medium text-slate-800">Roster #{rosterQuery.data.id}</p>
-                <p className="text-sm text-slate-500">Generated by {rosterQuery.data.generated_by} at {new Date(rosterQuery.data.generated_at).toLocaleString()}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-semibold text-ink">Roster #{rosterQuery.data.id}</span>
+                  <StatusBadge status={rosterQuery.data.status} />
+                </div>
+                <p className="text-xs text-ink-muted">
+                  {rosterQuery.data.generated_by} · {new Date(rosterQuery.data.generated_at).toLocaleString()}
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <StatusBadge status={rosterQuery.data.status} />
-                <Button variant="secondary" disabled={exporting} onClick={handleExport}>
-                  {exporting ? 'Exporting…' : 'Export .xlsx'}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" icon={Download} disabled={exporting} loading={exporting} onClick={handleExport}>
+                Export .xlsx
+              </Button>
+              {status === 'draft' && (
+                <Button icon={Send} disabled={publishMutation.isPending} loading={publishMutation.isPending} onClick={() => publishMutation.mutate()}>
+                  Publish
                 </Button>
-                {rosterQuery.data.status === 'draft' && (
-                  <Button disabled={publishMutation.isPending} onClick={() => publishMutation.mutate()}>
-                    Publish
-                  </Button>
-                )}
-                {rosterQuery.data.status === 'published' && (
-                  <Button variant="danger" disabled={lockMutation.isPending} onClick={() => lockMutation.mutate()}>
-                    Lock
-                  </Button>
-                )}
-              </div>
+              )}
+              {status === 'published' && (
+                <Button variant="danger" icon={Lock} disabled={lockMutation.isPending} loading={lockMutation.isPending} onClick={() => lockMutation.mutate()}>
+                  Lock
+                </Button>
+              )}
             </div>
-          </Card>
+          </div>
 
-          {conflictsQuery.data && conflictsQuery.data.length > 0 && (
-            <Card className="mb-5">
-              <h2 className="mb-2 font-medium text-slate-800">Conflict / toleration report</h2>
-              <div className="space-y-2">
-                {conflictsQuery.data.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
-                    <span>{c.description}</span>
-                    <StatusBadge status={c.severity} />
+          {/* Grid (primary) + context sidebar */}
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <section className="min-w-0">
+              <Card padded={false}>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <h2 className="text-[13px] font-semibold text-ink">Assignments</h2>
+                  <ShiftLegend entries={Object.entries(SHIFT_COLORS) as [string, string][]} />
+                </div>
+                {gridDays.length === 0 ? (
+                  <div className="p-4 pt-0">
+                    <EmptyState text="This roster has no assignments." />
                   </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {satisfactionQuery.data && satisfactionQuery.data.length > 0 && (
-            <Card className="mb-5">
-              <h2 className="mb-2 font-medium text-slate-800">Satisfaction metrics</h2>
-              <div className="flex flex-wrap gap-3">
-                {satisfactionQuery.data.map((m) => (
-                  <div key={m.id} className="rounded-md bg-slate-50 px-3 py-2 text-sm">
-                    {m.agent_id ? agentName(m.agent_id) : 'Aggregate'}: <strong>{m.value}%</strong> requests honored
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          <Card className="mb-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-medium text-slate-800">Assignments</h2>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                {Object.entries(SHIFT_COLORS).map(([name, cls]) => (
-                  <span key={name} className={`rounded px-1.5 py-0.5 ${cls}`}>
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-            {assignmentsQuery.data && assignmentsQuery.data.length === 0 && <EmptyState text="No assignments." />}
-            {gridDays.length > 0 && (
-              <ScrollTable>
-                <Thead>
-                  <Tr>
-                    <Th>Agent</Th>
-                    {gridDays.map((d) => (
-                      <Th key={d}>
-                        {weekdayLabel(d)}
-                        <span className="block font-normal normal-case text-slate-400">{d}</span>
-                      </Th>
-                    ))}
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {gridAgents.map((agent) => (
-                    <Tr key={agent.id}>
-                      <Td className="font-medium text-slate-800">{agent.name}</Td>
-                      {gridDays.map((day) => {
-                        const a = assignmentByAgentDate.get(`${agent.id}|${day}`)
-                        if (!a) {
-                          return (
-                            <Td key={day}>
-                              <span className="inline-block rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold text-slate-500">
-                                OFF
-                              </span>
-                            </Td>
-                          )
-                        }
+                ) : (
+                  <div className="p-2 pt-0">
+                    <RosterGrid
+                      days={gridDays}
+                      rows={gridRows}
+                      selectedCell={selected}
+                      onSelectCell={(rowKey, day) => setSelected({ rowKey, day })}
+                      renderCell={(rowKey, day) => {
+                        const a = assignmentByAgentDate.get(`${rowKey}|${day}`)
+                        if (!a) return <OffChip />
                         const shift = shiftsQuery.data?.find((s) => s.id === a.shift_id)
-                        const colorCls = (shift && SHIFT_COLORS[shift.name]) || DEFAULT_SHIFT_COLOR
                         return (
-                          <Td key={day}>
-                            <span
-                              className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${colorCls}`}
-                              title={`${shiftName(a.shift_id)} — ${skillName(a.skill_covered_id)}`}
-                            >
-                              {shiftCompactLabel(a.shift_id)}
-                            </span>
-                          </Td>
+                          <ShiftChip
+                            label={shiftCompactLabel(a.shift_id)}
+                            colorClass={(shift && SHIFT_COLORS[shift.name]) || DEFAULT_SHIFT_COLOR}
+                            title={`${shiftName(a.shift_id)} — ${skillName(a.skill_covered_id)}`}
+                          />
                         )
-                      })}
-                    </Tr>
-                  ))}
-                </Tbody>
-              </ScrollTable>
-            )}
-          </Card>
+                      }}
+                    />
+                  </div>
+                )}
+              </Card>
+            </section>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Card>
-              <h2 className="mb-3 font-medium text-slate-800">Re-upload edited Excel</h2>
-              <div className="space-y-2">
-                <input type="file" accept=".xlsx" onChange={(e) => setImportFile(e.target.files?.[0] ?? null)} className="text-sm" />
-                <Input placeholder="Reason (required if it overrides a request outcome)" value={importReason} onChange={(e) => setImportReason(e.target.value)} />
-                <Button disabled={!importFile || importMutation.isPending} onClick={() => importMutation.mutate()}>
-                  Upload & re-validate
-                </Button>
-              </div>
-            </Card>
+            <aside className="flex flex-col gap-5">
+              {/* Health summary */}
+              <Card>
+                <CardHeader title="Roster health" />
+                <div className="grid grid-cols-2 gap-3">
+                  <HealthStat
+                    label="Conflicts"
+                    value={conflicts.length}
+                    tone={criticalCount > 0 ? 'critical' : conflicts.length > 0 ? 'warning' : 'success'}
+                  />
+                  <HealthStat
+                    label="Requests honored"
+                    value={
+                      satisfactionQuery.data && satisfactionQuery.data.length
+                        ? `${Math.round(
+                            satisfactionQuery.data.reduce((s, m) => s + m.value, 0) / satisfactionQuery.data.length,
+                          )}%`
+                        : '—'
+                    }
+                    tone="info"
+                  />
+                </div>
+              </Card>
 
-            <Card>
-              <h2 className="mb-1 font-medium text-slate-800">Single-assignment override</h2>
-              <p className="mb-3 text-xs text-slate-500">
-                Put an agent on a shift for one day, or set them off. The skill they cover is chosen automatically
-                from their own skills; the edit is rejected if it breaks a hard constraint (double-booking, an
-                approved leave day, or a coverage minimum).
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="Agent">
-                  <Select value={ovAgentId} onChange={(e) => setOvAgentId(e.target.value)}>
-                    <option value="">Select…</option>
-                    {agentsQuery.data?.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Date">
-                  <Input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} />
-                </Field>
-                <div className="col-span-2">
+              {/* Selected cell / override */}
+              <Card>
+                <CardHeader title="Edit assignment" description={selected ? undefined : 'Select a cell in the grid, or choose an agent and date.'} />
+                {selected && (
+                  <div className="mb-3 rounded-input border border-accent-ring/40 bg-accent-subtle px-3 py-2">
+                    <p className="text-[13px] font-medium text-ink">{agentName(Number(selected.rowKey))}</p>
+                    <p className="text-xs text-ink-muted">{selected.day}</p>
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <Field label="Agent">
+                    <Select value={ovAgentId} onChange={(e) => setOvAgentId(e.target.value)}>
+                      <option value="">Select…</option>
+                      {agentsQuery.data?.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field label="Date">
+                    <Input type="date" value={ovDate} onChange={(e) => setOvDate(e.target.value)} />
+                  </Field>
                   <Field label="Shift">
                     <Select value={ovShiftId} onChange={(e) => setOvShiftId(e.target.value)}>
-                      <option value="">Off (unassign — give this day off)</option>
+                      <option value="">Off (give this day off)</option>
                       {shiftsQuery.data?.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name} ({s.start_time}–{s.end_time})
@@ -403,25 +395,96 @@ export default function RosterWorkspace() {
                       ))}
                     </Select>
                   </Field>
+                  <Field label="Reason" required>
+                    <Input placeholder="Always required" value={ovReason} onChange={(e) => setOvReason(e.target.value)} />
+                  </Field>
+                  <p className="text-xs leading-relaxed text-ink-muted">
+                    The covered skill is chosen automatically. Rejected if it breaks a hard constraint (double-booking, an
+                    approved leave day, or a coverage minimum).
+                  </p>
+                  <Button
+                    className="w-full"
+                    disabled={!ovAgentId || !ovDate || !ovReason || overrideMutation.isPending}
+                    loading={overrideMutation.isPending}
+                    onClick={() => overrideMutation.mutate()}
+                  >
+                    Apply override
+                  </Button>
                 </div>
-                <Input
-                  className="col-span-2"
-                  placeholder="Reason (always required)"
-                  value={ovReason}
-                  onChange={(e) => setOvReason(e.target.value)}
-                />
-                <Button
-                  className="col-span-2"
-                  disabled={!ovAgentId || !ovDate || !ovReason || overrideMutation.isPending}
-                  onClick={() => overrideMutation.mutate()}
-                >
-                  Apply override
-                </Button>
-              </div>
-            </Card>
+              </Card>
+
+              {/* Conflicts */}
+              {conflicts.length > 0 && (
+                <Card>
+                  <CardHeader title="Conflict report" />
+                  <ul className="space-y-2">
+                    {conflicts.map((c) => (
+                      <li key={c.id} className="flex items-start gap-2 text-[13px]">
+                        {c.severity === 'critical' ? (
+                          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-critical" />
+                        ) : (
+                          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
+                        )}
+                        <span className="text-ink-secondary">{c.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              )}
+
+              {/* Import */}
+              <Card>
+                <CardHeader title="Re-upload edited Excel" description="Round-trip the exported sheet with your edits." />
+                <div className="space-y-2.5">
+                  <label className="flex cursor-pointer items-center gap-2 rounded-input border border-dashed border-line-strong bg-surface-muted px-3 py-2.5 text-[13px] text-ink-secondary hover:border-accent hover:bg-accent-subtle/40">
+                    <Upload className="size-4 text-ink-muted" />
+                    <span className="truncate">{importFile ? importFile.name : 'Choose .xlsx file…'}</span>
+                    <input type="file" accept=".xlsx" className="hidden" onChange={(e) => setImportFile(e.target.files?.[0] ?? null)} />
+                  </label>
+                  <Input
+                    placeholder="Reason (if it overrides a request)"
+                    value={importReason}
+                    onChange={(e) => setImportReason(e.target.value)}
+                  />
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    icon={Upload}
+                    disabled={!importFile || importMutation.isPending}
+                    loading={importMutation.isPending}
+                    onClick={() => importMutation.mutate()}
+                  >
+                    Upload & re-validate
+                  </Button>
+                </div>
+              </Card>
+            </aside>
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function HealthStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: React.ReactNode
+  tone: 'success' | 'warning' | 'critical' | 'info'
+}) {
+  const toneClass = {
+    success: 'text-success',
+    warning: 'text-warning',
+    critical: 'text-critical',
+    info: 'text-info',
+  }[tone]
+  return (
+    <div className="rounded-input border border-line bg-surface-muted px-3 py-2.5">
+      <div className="text-xs text-ink-muted">{label}</div>
+      <div className={cn('mt-0.5 text-xl font-semibold tabular-nums', toneClass)}>{value}</div>
     </div>
   )
 }

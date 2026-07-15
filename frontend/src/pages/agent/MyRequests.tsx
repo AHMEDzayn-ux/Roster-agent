@@ -5,6 +5,7 @@ import { getCurrentWeeklyCycle, listMyRequests, listShiftTemplates, submitAppeal
 import {
   Button,
   Card,
+  CardHeader,
   EmptyState,
   ErrorBanner,
   Field,
@@ -91,9 +92,9 @@ export default function MyRequests() {
       <PageTitle subtitle="Submit a new request or check the status of ones you've already sent in.">My Requests</PageTitle>
 
       <Card className="mb-6">
-        <h2 className="mb-3 font-medium text-slate-800">Submit a request</h2>
+        <CardHeader title="Submit a request" description="Requests are reviewed and factored into the weekly roster." />
         {!cycleQuery.data && !cycleQuery.isLoading && (
-          <p className="text-sm text-slate-500">No weekly cycle is currently open for requests.</p>
+          <p className="text-[13px] text-ink-muted">No weekly cycle is currently open for requests.</p>
         )}
         {cycleQuery.data && (
           <>
@@ -158,7 +159,7 @@ export default function MyRequests() {
       </Card>
 
       <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-lg font-medium text-slate-800">My requests</h2>
+        <h2 className="text-[13px] font-semibold text-ink">My requests</h2>
         <div className="flex flex-wrap items-end gap-2">
           <Field label="Type">
             <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)} className="w-44">
@@ -193,19 +194,19 @@ export default function MyRequests() {
             <Card key={r.id}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-medium text-slate-800">{REQUEST_TYPE_LABELS[r.request_type]}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-[13px] font-semibold text-ink">{REQUEST_TYPE_LABELS[r.request_type]}</p>
+                  <p className="text-xs tabular-nums text-ink-muted">
                     {r.requested_start_date}
                     {r.requested_end_date ? ` → ${r.requested_end_date}` : ''}
                   </p>
-                  {r.reason && <p className="mt-1 text-sm text-slate-600">"{r.reason}"</p>}
-                  {r.denial_reason && <p className="mt-1 text-sm text-red-600">Denied: {r.denial_reason}</p>}
+                  {r.reason && <p className="mt-1 text-[13px] text-ink-secondary">“{r.reason}”</p>}
+                  {r.denial_reason && <p className="mt-1 text-[13px] text-critical">Denied: {r.denial_reason}</p>}
                 </div>
                 <StatusBadge status={r.status} />
               </div>
 
               {r.status === 'denied' && (
-                <div className="mt-3 border-t border-slate-100 pt-3">
+                <div className="mt-3 border-t border-line pt-3">
                   {appealingId === r.id ? (
                     <div className="space-y-2">
                       <ErrorBanner message={appealError} />

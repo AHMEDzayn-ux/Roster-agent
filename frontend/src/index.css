@@ -1,14 +1,142 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   Design tokens
+   A restrained, neutral enterprise palette with a single indigo accent.
+   Radii, elevation and typography are all tokenised so every component
+   references the same scale (8px spacing system, subtle shadows).
+   ============================================================================ */
+@theme {
+  /* ---- Neutral surface & text ramp (cool grey / slate) ---- */
+  --color-canvas: #f7f8fa; /* app background */
+  --color-surface: #ffffff; /* cards, panels */
+  --color-surface-muted: #f9fafb; /* table headers, inset areas */
+  --color-surface-hover: #f3f4f6;
+
+  --color-line: #e8eaed; /* hairline borders */
+  --color-line-strong: #d6d9de; /* input borders, dividers */
+
+  --color-ink: #1a1d21; /* primary text / headings */
+  --color-ink-secondary: #4b5563; /* body text */
+  --color-ink-muted: #6b7280; /* metadata */
+  --color-ink-subtle: #9aa1ac; /* placeholders, disabled */
+
+  /* ---- Single accent (indigo) ---- */
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-active: #3730a3;
+  --color-accent-fg: #ffffff;
+  --color-accent-subtle: #eef2ff;
+  --color-accent-subtle-fg: #4338ca;
+  --color-accent-ring: #a5b4fc;
+
+  /* ---- Semantic (meaning only) ---- */
+  --color-success: #15803d;
+  --color-success-subtle: #ecfdf3;
+  --color-success-border: #bbf7d0;
+  --color-info: #1d4ed8;
+  --color-info-subtle: #eff4ff;
+  --color-info-border: #bfdbfe;
+  --color-warning: #b45309;
+  --color-warning-subtle: #fffaeb;
+  --color-warning-border: #fde68a;
+  --color-critical: #b91c1c;
+  --color-critical-subtle: #fef3f2;
+  --color-critical-border: #fecaca;
+
+  /* ---- Radius ---- */
+  --radius-input: 8px;
+  --radius-btn: 8px;
+  --radius-chip: 6px;
+  --radius-card: 12px;
+  --radius-modal: 16px;
+
+  /* ---- Elevation (subtle, low-spread) ---- */
+  --shadow-xs: 0 1px 1px 0 rgb(16 24 40 / 0.04);
+  --shadow-sm: 0 1px 2px 0 rgb(16 24 40 / 0.06), 0 1px 3px 0 rgb(16 24 40 / 0.04);
+  --shadow-md: 0 2px 4px -1px rgb(16 24 40 / 0.06), 0 6px 16px -4px rgb(16 24 40 / 0.08);
+  --shadow-pop: 0 8px 24px -6px rgb(16 24 40 / 0.14), 0 2px 6px -2px rgb(16 24 40 / 0.08);
+
+  /* ---- Typography ---- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ============================================================================
+   Base
+   ============================================================================ */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   margin: 0;
-  @apply bg-slate-50 text-slate-900;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 #root {
   min-height: 100svh;
+}
+
+/* Tabular figures for numeric tables/metrics so columns align. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Consistent, accessible focus ring across custom controls. */
+.focus-ring:focus-visible,
+:where(input, select, textarea, button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent-ring);
+  outline-offset: 1px;
+}
+
+/* Refined, thin scrollbars for dense scroll regions. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-subtle);
+  background-clip: content-box;
+  border: 3px solid transparent;
+}
+
+/* Skeleton shimmer. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.skeleton {
+  background: var(--color-surface-hover);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }

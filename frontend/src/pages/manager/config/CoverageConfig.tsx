@@ -123,10 +123,10 @@ export default function CoverageConfig() {
 
   return (
     <div>
-      <details className="mb-3 rounded-lg border border-slate-200 bg-white shadow-sm">
-        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-slate-700">+ Add a coverage requirement</summary>
-        <div className="border-t border-slate-100 p-3">
-          <p className="mb-3 text-xs text-slate-500">
+      <details className="mb-3 rounded-card border border-line bg-surface shadow-xs">
+        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-ink">+ Add a coverage requirement</summary>
+        <div className="border-t border-line p-3">
+          <p className="mb-3 text-xs text-ink-muted">
             Minimum staffing per time slot per skill, not per named shift — the solver checks every shift that overlaps this slot.
           </p>
           <ErrorBanner message={error} />
@@ -168,7 +168,7 @@ export default function CoverageConfig() {
             <Field label="Weight">
               <Input type="number" min={0} step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} className="w-20" />
             </Field>
-            <label className="flex items-center gap-1.5 pb-1.5 text-sm text-slate-600">
+            <label className="flex items-center gap-1.5 pb-1.5 text-sm text-ink-secondary">
               <input type="checkbox" checked={isPeak} onChange={(e) => setIsPeak(e.target.checked)} />
               Peak
             </label>
@@ -215,7 +215,7 @@ export default function CoverageConfig() {
                 .sort((a, b) => a.day_of_week - b.day_of_week || a.time_slot_start.localeCompare(b.time_slot_start))
                 .map((c) => (
                   <Tr key={c.id}>
-                    <Td className="font-medium text-slate-800">
+                    <Td className="font-medium text-ink">
                       <CellSelect editing={editing} value={c.day_of_week} onChange={(v) => updateRow(c.id, { day_of_week: v })} options={dayOptions} />
                     </Td>
                     <Td>
@@ -243,7 +243,9 @@ export default function CoverageConfig() {
                       {editing ? (
                         <CellCheckbox editing checked={c.is_peak} onChange={(v) => updateRow(c.id, { is_peak: v })} />
                       ) : c.is_peak ? (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">Peak</span>
+                        <span className="inline-flex items-center rounded-full border border-warning-border bg-warning-subtle px-2 py-0.5 text-[11px] font-medium text-warning">
+                          Peak
+                        </span>
                       ) : (
                         '—'
                       )}

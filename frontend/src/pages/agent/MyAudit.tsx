@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { listMyAuditLog } from '../../api/endpoints'
-import { Card, EmptyState, LoadingText, PageTitle } from '../../components/ui'
+import { EmptyState, LoadingText, PageTitle } from '../../components/ui'
 
 export default function MyAudit() {
   const query = useQuery({ queryKey: ['my-audit'], queryFn: listMyAuditLog })
@@ -13,16 +13,17 @@ export default function MyAudit() {
       {query.isLoading && <LoadingText />}
       {query.data && query.data.length === 0 && <EmptyState text="No changes have been logged against your requests." />}
       {query.data && query.data.length > 0 && (
-        <div className="space-y-3">
+        <div className="relative space-y-0 border-l border-line pl-5">
           {query.data.map((e) => (
-            <Card key={e.id}>
-              <p className="text-xs text-slate-500">{new Date(e.timestamp).toLocaleString()}</p>
-              <p className="mt-1 font-medium text-slate-800">{e.action_type.replaceAll('_', ' ')}</p>
-              <p className="text-sm text-slate-600">
-                {e.old_value} → {e.new_value}
+            <div key={e.id} className="relative pb-5 last:pb-0">
+              <span className="absolute -left-[23px] top-1 size-2.5 rounded-full border-2 border-surface bg-accent" />
+              <p className="text-xs tabular-nums text-ink-muted">{new Date(e.timestamp).toLocaleString()}</p>
+              <p className="mt-0.5 text-[13px] font-semibold capitalize text-ink">{e.action_type.replaceAll('_', ' ')}</p>
+              <p className="text-[13px] text-ink-secondary">
+                {e.old_value ?? '—'} <span className="text-ink-subtle">→</span> {e.new_value ?? '—'}
               </p>
-              {e.reason && <p className="mt-1 text-sm text-slate-700">Reason: {e.reason}</p>}
-            </Card>
+              {e.reason && <p className="mt-0.5 text-[13px] text-ink-muted">Reason: {e.reason}</p>}
+            </div>
           ))}
         </div>
       )}

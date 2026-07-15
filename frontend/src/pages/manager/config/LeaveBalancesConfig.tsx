@@ -135,16 +135,16 @@ export default function LeaveBalancesConfig() {
             <Tbody>
               {rows.map((r) => (
                 <Tr key={r.agentId}>
-                  <Td className="font-medium text-slate-800">
+                  <Td className="font-medium text-ink">
                     {r.agentName}
-                    {!r.hasBalance && <span className="ml-2 text-xs text-slate-400">(no record yet)</span>}
+                    {!r.hasBalance && <span className="ml-2 text-xs text-ink-subtle">(no record yet)</span>}
                   </Td>
                   <Td>
                     <CellNumber editing={editing} value={r.allotted} onChange={(v) => updateRow(r.agentId, v ?? 0)} step="0.5" />
                   </Td>
                   <Td>{r.taken}</Td>
                   <Td>{r.halfDays}</Td>
-                  <Td>{r.hasBalance ? r.remaining : <span className="text-slate-400">—</span>}</Td>
+                  <Td>{r.hasBalance ? r.remaining : <span className="text-ink-subtle">—</span>}</Td>
                 </Tr>
               ))}
             </Tbody>

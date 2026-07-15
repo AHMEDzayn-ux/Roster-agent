@@ -71,9 +71,9 @@ export default function SkillsConfig() {
 
   return (
     <div>
-      <details className="mb-3 rounded-lg border border-slate-200 bg-white shadow-sm">
-        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-slate-700">+ Add a skill</summary>
-        <div className="border-t border-slate-100 p-3">
+      <details className="mb-3 rounded-card border border-line bg-surface shadow-xs">
+        <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-ink">+ Add a skill</summary>
+        <div className="border-t border-line p-3">
           <ErrorBanner message={error} />
           <form
             onSubmit={(e) => {
@@ -119,7 +119,7 @@ export default function SkillsConfig() {
             <Tbody>
               {rows.map((s) => (
                 <Tr key={s.id}>
-                  <Td className="font-medium text-slate-800">
+                  <Td className="font-medium text-ink">
                     <CellText editing={editing} value={s.name} onChange={(v) => updateRow(s.id, { name: v })} />
                   </Td>
                   <Td>
