@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Pencil, Trash2 } from 'lucide-react'
 import { extractErrorMessage } from '../../api/client'
-import { getCurrentWeeklyCycle, listMyRequests, listShiftTemplates, submitAppeal, submitRequest } from '../../api/endpoints'
 import {
+  deleteRequest,
+  getCurrentWeeklyCycle,
+  listMyRequests,
+  listShiftTemplates,
+  submitAppeal,
+  submitRequest,
+  updateRequest,
+} from '../../api/endpoints'
+import {
+  Alert,
   Button,
   Card,
   CardHeader,
@@ -11,13 +21,14 @@ import {
   Field,
   Input,
   LoadingText,
+  Modal,
   PageTitle,
   REQUEST_TYPE_LABELS,
   Select,
   StatusBadge,
   SuccessBanner,
 } from '../../components/ui'
-import type { RequestType } from '../../types'
+import type { RequestType, WeeklyRequest } from '../../types'
 
 const REQUEST_TYPES: RequestType[] = ['off_day', 'leave_full', 'leave_half', 'leave_multi', 'shift_change', 'overtime', 'other']
 
@@ -39,6 +50,20 @@ export default function MyRequests() {
   const [appealingId, setAppealingId] = useState<number | null>(null)
   const [appealReason, setAppealReason] = useState('')
   const [appealError, setAppealError] = useState<string | null>(null)
+
+  const [editing, setEditing] = useState<WeeklyRequest | null>(null)
+  const [deleting, setDeleting] = useState<WeeklyRequest | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteRequest(id),
+    onSuccess: () => {
+      setDeleting(null)
+      setDeleteError(null)
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] })
+    },
+    onError: (err) => setDeleteError(extractErrorMessage(err)),
+  })
 
   const [typeFilter, setTypeFilter] = useState<'all' | 'leave' | RequestType>('all')
   const [statusFilter, setStatusFilter] = useState('')
@@ -202,7 +227,19 @@ export default function MyRequests() {
                   {r.reason && <p className="mt-1 text-[13px] text-ink-secondary">“{r.reason}”</p>}
                   {r.denial_reason && <p className="mt-1 text-[13px] text-critical">Denied: {r.denial_reason}</p>}
                 </div>
-                <StatusBadge status={r.status} />
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <StatusBadge status={r.status} />
+                  {r.status === 'pending' && (
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(r)}>
+                        Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setDeleting(r)}>
+                        Delete
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {r.status === 'denied' && (
@@ -238,6 +275,154 @@ export default function MyRequests() {
           ))}
         </div>
       )}
+
+      {editing && (
+        <EditRequestModal
+          request={editing}
+          shifts={shiftsQuery.data ?? []}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null)
+            queryClient.invalidateQueries({ queryKey: ['my-requests'] })
+          }}
+        />
+      )}
+
+      <Modal
+        open={deleting != null}
+        onClose={() => {
+          setDeleting(null)
+          setDeleteError(null)
+        }}
+        title="Withdraw request"
+        description={deleting ? `${REQUEST_TYPE_LABELS[deleting.request_type]} · ${deleting.requested_start_date}` : undefined}
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleting(null)
+                setDeleteError(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={deleteMutation.isPending}
+              loading={deleteMutation.isPending}
+              onClick={() => deleting && deleteMutation.mutate(deleting.id)}
+            >
+              Withdraw request
+            </Button>
+          </>
+        }
+      >
+        {deleteError && <Alert tone="critical" message={deleteError} className="mb-3" />}
+        <p className="text-[13px] text-ink-secondary">
+          This permanently removes the request. You can only withdraw a request while it is still pending and the cycle's
+          request window is open.
+        </p>
+      </Modal>
     </div>
+  )
+}
+
+function EditRequestModal({
+  request,
+  shifts,
+  onClose,
+  onSaved,
+}: {
+  request: WeeklyRequest
+  shifts: { id: number; name: string; start_time: string; end_time: string }[]
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [type, setType] = useState<RequestType>(request.request_type)
+  const [startDate, setStartDate] = useState(request.requested_start_date)
+  const [endDate, setEndDate] = useState(request.requested_end_date ?? '')
+  const [halfDayPortion, setHalfDayPortion] = useState(request.half_day_portion ?? 'first_half')
+  const [requestedShiftId, setRequestedShiftId] = useState(request.requested_shift_id ? String(request.requested_shift_id) : '')
+  const [reason, setReason] = useState(request.reason ?? '')
+  const [error, setError] = useState<string | null>(null)
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      updateRequest(request.id, {
+        request_type: type,
+        requested_start_date: startDate,
+        requested_end_date: type === 'leave_multi' ? endDate : null,
+        half_day_portion: type === 'leave_half' ? halfDayPortion : null,
+        requested_shift_id: type === 'shift_change' ? Number(requestedShiftId) : null,
+        reason: reason || null,
+      }),
+    onSuccess: onSaved,
+    onError: (err) => setError(extractErrorMessage(err)),
+  })
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Edit request"
+      description="Change the details of this pending request."
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button disabled={!startDate || saveMutation.isPending} loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+            Save changes
+          </Button>
+        </>
+      }
+    >
+      {error && <Alert tone="critical" message={error} className="mb-3" />}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Request type">
+          <Select value={type} onChange={(e) => setType(e.target.value as RequestType)}>
+            {REQUEST_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {REQUEST_TYPE_LABELS[t]}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label={type === 'leave_multi' ? 'Start date' : 'Date'} required>
+          <Input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </Field>
+        {type === 'leave_multi' && (
+          <Field label="End date" required>
+            <Input type="date" required value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </Field>
+        )}
+        {type === 'leave_half' && (
+          <Field label="Which half">
+            <Select value={halfDayPortion} onChange={(e) => setHalfDayPortion(e.target.value as 'first_half' | 'second_half')}>
+              <option value="first_half">First half</option>
+              <option value="second_half">Second half</option>
+            </Select>
+          </Field>
+        )}
+        {type === 'shift_change' && (
+          <Field label="Requested shift" required>
+            <Select required value={requestedShiftId} onChange={(e) => setRequestedShiftId(e.target.value)}>
+              <option value="">Select a shift…</option>
+              {shifts.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.start_time}–{s.end_time})
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
+        <div className="sm:col-span-2">
+          <Field label="Reason (optional)">
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} />
+          </Field>
+        </div>
+      </div>
+    </Modal>
   )
 }

@@ -7,7 +7,7 @@ from app.models.enums import RequestStatus, RequestType, WeeklyCycleStatus
 from app.models.leave_balance import LeaveBalance
 from app.models.weekly_cycle import WeeklyCycle
 from app.models.weekly_request import WeeklyRequest
-from app.schemas.weekly_request import WeeklyRequestCreate, WeeklyRequestReview
+from app.schemas.weekly_request import WeeklyRequestCreate, WeeklyRequestReview, WeeklyRequestUpdate
 
 LEAVE_REQUEST_TYPES = {RequestType.leave_full, RequestType.leave_half, RequestType.leave_multi}
 
@@ -88,6 +88,45 @@ def create_request(db: Session, agent_id: int, request_in: WeeklyRequestCreate) 
     db.commit()
     db.refresh(request)
     return request
+
+
+def _assert_editable_window(db: Session, request: WeeklyRequest) -> None:
+    """A request may be edited/withdrawn by its owner only while it is still
+    pending and the cycle's request window is open."""
+    if request.status != RequestStatus.pending:
+        raise WeeklyRequestError("Only pending requests can be changed")
+    cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == request.week_cycle_id).first()
+    now = datetime.now(timezone.utc)
+    if cycle is None or cycle.status == WeeklyCycleStatus.locked or now > cycle.request_deadline:
+        raise WeeklyRequestError("The request window for this weekly cycle has closed")
+
+
+def update_request(db: Session, request: WeeklyRequest, update: WeeklyRequestUpdate) -> WeeklyRequest:
+    _assert_editable_window(db, request)
+
+    days = requested_days(update.request_type, update.requested_start_date, update.requested_end_date)
+    if update.request_type in LEAVE_REQUEST_TYPES:
+        balance = _get_leave_balance_or_error(db, request.agent_id, update.requested_start_date.year)
+        if days > balance.remaining_balance:
+            raise WeeklyRequestError(
+                f"Requested {days} day(s) exceeds remaining leave balance of {balance.remaining_balance}"
+            )
+
+    request.request_type = update.request_type
+    request.requested_start_date = update.requested_start_date
+    request.requested_end_date = update.requested_end_date
+    request.half_day_portion = update.half_day_portion
+    request.requested_shift_id = update.requested_shift_id
+    request.reason = update.reason
+    db.commit()
+    db.refresh(request)
+    return request
+
+
+def delete_request(db: Session, request: WeeklyRequest) -> None:
+    _assert_editable_window(db, request)
+    db.delete(request)
+    db.commit()
 
 
 def review_request(db: Session, request: WeeklyRequest, review: WeeklyRequestReview) -> WeeklyRequest:

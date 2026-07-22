@@ -5,6 +5,14 @@ import { useAuth } from '../auth/AuthContext'
 import { extractErrorMessage } from '../api/client'
 import { Alert, Button, Field, Input } from '../components/ui'
 
+// All three share the AgentDemo123! password. Alex & Sam are a matched pair
+// (same skills/shifts) for demoing overlapping requests.
+const DEMO_AGENTS = [
+  { label: 'Ravi', email: 'ravi@callroster-demo.com' },
+  { label: 'Alex', email: 'alex@callroster-demo.com' },
+  { label: 'Sam', email: 'sam@callroster-demo.com' },
+]
+
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -67,23 +75,28 @@ export default function Login() {
           Demo access
           <span className="h-px flex-1 bg-line" />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => loginAsDemo('manager@callroster-demo.com', 'TempCheck123!')}
-          >
-            Manager demo
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={submitting}
-            onClick={() => loginAsDemo('ravi@callroster-demo.com', 'AgentDemo123!')}
-          >
-            Agent demo
-          </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={submitting}
+          className="w-full"
+          onClick={() => loginAsDemo('manager@callroster-demo.com', 'TempCheck123!')}
+        >
+          Manager demo
+        </Button>
+        <p className="mb-1.5 mt-3 text-[11px] font-medium text-ink-muted">Agent demos</p>
+        <div className="grid grid-cols-3 gap-2">
+          {DEMO_AGENTS.map((a) => (
+            <Button
+              key={a.email}
+              type="button"
+              variant="secondary"
+              disabled={submitting}
+              onClick={() => loginAsDemo(a.email, 'AgentDemo123!')}
+            >
+              {a.label}
+            </Button>
+          ))}
         </div>
       </div>
     </div>

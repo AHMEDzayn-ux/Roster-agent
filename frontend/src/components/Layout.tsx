@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   Bell,
@@ -17,8 +17,15 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
-import { getCurrentWeeklyCycle, listAppeals } from '../api/endpoints'
+import { getCurrentWeeklyCycle, listAgents, listAppeals, listShiftTemplates } from '../api/endpoints'
 import { Avatar, Badge, IconButton, cn } from './ui'
+
+interface SearchResult {
+  id: string
+  label: string
+  kind: string
+  to: string
+}
 
 interface NavItem {
   to: string
@@ -182,6 +189,131 @@ function ProfileMenu() {
   )
 }
 
+function SearchCommand() {
+  const { role } = useAuth()
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const agentsQuery = useQuery({ queryKey: ['agents'], queryFn: listAgents, enabled: role === 'manager' })
+  const shiftsQuery = useQuery({ queryKey: ['shift-templates'], queryFn: listShiftTemplates, enabled: role === 'manager' })
+
+  const index = useMemo<SearchResult[]>(() => {
+    const items: SearchResult[] = [{ id: 'p-public', label: 'Published Roster', kind: 'Page', to: '/' }]
+    if (role === 'manager') {
+      items.push(
+        { id: 'p-dash', label: 'Dashboard', kind: 'Page', to: '/manager' },
+        { id: 'p-req', label: 'Requests', kind: 'Page', to: '/manager/requests' },
+        { id: 'p-roster', label: 'Roster', kind: 'Page', to: '/manager/roster' },
+        { id: 'p-appeals', label: 'Appeals', kind: 'Page', to: '/manager/appeals' },
+        { id: 'p-audit', label: 'Audit Log', kind: 'Page', to: '/manager/audit' },
+        { id: 'c-skills', label: 'Skills', kind: 'Config', to: '/manager/config/skills' },
+        { id: 'c-shifts', label: 'Shift Templates', kind: 'Config', to: '/manager/config/shifts' },
+        { id: 'c-cov', label: 'Coverage', kind: 'Config', to: '/manager/config/coverage' },
+        { id: 'c-agents', label: 'Agents', kind: 'Config', to: '/manager/config/agents' },
+        { id: 'c-leave', label: 'Leave Balances', kind: 'Config', to: '/manager/config/leave-balances' },
+        { id: 'c-cycles', label: 'Weekly Cycles', kind: 'Config', to: '/manager/config/weekly-cycles' },
+        { id: 'c-solver', label: 'Solver Weights', kind: 'Config', to: '/manager/config/solver' },
+      )
+      for (const a of agentsQuery.data ?? []) items.push({ id: `a-${a.id}`, label: a.name, kind: 'Agent', to: '/manager/config/agents' })
+      for (const s of shiftsQuery.data ?? []) items.push({ id: `s-${s.id}`, label: s.name, kind: 'Shift', to: '/manager/config/shifts' })
+    } else if (role === 'agent') {
+      items.push(
+        { id: 'p-dash', label: 'Dashboard', kind: 'Page', to: '/agent' },
+        { id: 'p-req', label: 'My Requests', kind: 'Page', to: '/agent/requests' },
+        { id: 'p-appeals', label: 'My Appeals', kind: 'Page', to: '/agent/appeals' },
+        { id: 'p-audit', label: 'Audit Trail', kind: 'Page', to: '/agent/audit' },
+      )
+    }
+    return items
+  }, [role, agentsQuery.data, shiftsQuery.data])
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return index.filter((i) => i.label.toLowerCase().includes(q) || i.kind.toLowerCase().includes(q)).slice(0, 8)
+  }, [query, index])
+
+  useEffect(() => setActive(0), [query])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function go(r: SearchResult) {
+    navigate(r.to)
+    setQuery('')
+    setOpen(false)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActive((a) => Math.min(a + 1, results.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActive((a) => Math.max(a - 1, 0))
+    } else if (e.key === 'Enter' && results[active]) {
+      e.preventDefault()
+      go(results[active])
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
+  const showDropdown = open && query.trim().length > 0
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+        placeholder="Search pages, agents, shifts…"
+        className="h-8 w-full rounded-input border border-line bg-surface-muted pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-subtle focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-ring/50"
+      />
+      {showDropdown && (
+        <div className="scroll-thin absolute left-0 right-0 top-10 z-40 max-h-80 overflow-auto rounded-input border border-line bg-surface p-1 shadow-pop">
+          {results.length === 0 ? (
+            <p className="px-3 py-2 text-[13px] text-ink-muted">No matches for “{query}”.</p>
+          ) : (
+            results.map((r, i) => (
+              <button
+                key={r.id}
+                type="button"
+                onMouseEnter={() => setActive(i)}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  go(r)
+                }}
+                className={cn(
+                  'flex w-full items-center justify-between gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-[13px]',
+                  i === active ? 'bg-surface-muted text-ink' : 'text-ink-secondary',
+                )}
+              >
+                <span className="truncate">{r.label}</span>
+                <span className="shrink-0 text-[11px] text-ink-subtle">{r.kind}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Layout() {
   const { isAuthenticated } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -244,13 +376,8 @@ export default function Layout() {
             </button>
 
             {/* Search */}
-            <div className="relative hidden max-w-md flex-1 sm:block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
-              <input
-                type="search"
-                placeholder="Search agents, shifts, requests…"
-                className="h-8 w-full rounded-input border border-line bg-surface-muted pl-9 pr-3 text-[13px] text-ink placeholder:text-ink-subtle focus:border-accent focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-ring/50"
-              />
+            <div className="hidden max-w-md flex-1 sm:block">
+              <SearchCommand />
             </div>
 
             <div className="ml-auto flex items-center gap-1.5 sm:gap-3">

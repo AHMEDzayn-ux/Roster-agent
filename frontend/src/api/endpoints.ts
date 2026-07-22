@@ -112,6 +112,18 @@ export const submitRequest = (payload: {
 }) => apiClient.post<WeeklyRequest>('/requests', payload).then((r) => r.data)
 export const denyRequest = (id: number, denialReason: string) =>
   apiClient.patch<WeeklyRequest>(`/requests/${id}`, { status: 'denied', denial_reason: denialReason }).then((r) => r.data)
+export const updateRequest = (
+  id: number,
+  payload: {
+    request_type: string
+    requested_start_date: string
+    requested_end_date?: string | null
+    half_day_portion?: string | null
+    requested_shift_id?: number | null
+    reason?: string | null
+  },
+) => apiClient.put<WeeklyRequest>(`/requests/${id}`, payload).then((r) => r.data)
+export const deleteRequest = (id: number) => apiClient.delete(`/requests/${id}`)
 
 // --- roster ---
 export const generateRoster = (weekCycleId: number) =>

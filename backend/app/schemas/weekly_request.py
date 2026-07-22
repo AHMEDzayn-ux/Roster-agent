@@ -29,6 +29,31 @@ class WeeklyRequestCreate(BaseModel):
         return self
 
 
+class WeeklyRequestUpdate(BaseModel):
+    """Agent-owned edit of a still-pending request (same cycle). Mirrors the
+    create-time, type-specific validation."""
+
+    request_type: RequestType
+    requested_start_date: date
+    requested_end_date: date | None = None
+    half_day_portion: HalfDayPortion | None = None
+    requested_shift_id: int | None = None
+    reason: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_type_specific_fields(self) -> "WeeklyRequestUpdate":
+        if self.request_type == RequestType.leave_half and self.half_day_portion is None:
+            raise ValueError("half_day_portion is required for leave_half requests")
+        if self.request_type == RequestType.leave_multi:
+            if self.requested_end_date is None:
+                raise ValueError("requested_end_date is required for leave_multi requests")
+            if self.requested_end_date < self.requested_start_date:
+                raise ValueError("requested_end_date cannot be before requested_start_date")
+        if self.request_type == RequestType.shift_change and self.requested_shift_id is None:
+            raise ValueError("requested_shift_id is required for shift_change requests")
+        return self
+
+
 class WeeklyRequestReview(BaseModel):
     """Pre-solver manager triage. Can only reject invalid/duplicate requests —
     real approval is decided by the solver at roster generation time (spec §2.6)."""
