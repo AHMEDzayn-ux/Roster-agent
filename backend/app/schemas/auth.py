@@ -28,3 +28,13 @@ class UserOut(BaseModel):
     active: bool
 
     model_config = {"from_attributes": True}
+
+
+class MeOut(BaseModel):
+    """The signed-in identity, including the linked agent's display name."""
+
+    id: int
+    email: EmailStr
+    role: UserRole
+    agent_id: int | None
+    agent_name: str | None = None

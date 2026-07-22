@@ -28,6 +28,15 @@ export const login = (email: string, password: string) =>
 export const createUser = (payload: { email: string; password: string; role: UserRole; agent_id?: number | null }) =>
   apiClient.post<UserOut>('/auth/users', payload).then((r) => r.data)
 
+export interface Me {
+  id: number
+  email: string
+  role: UserRole
+  agent_id: number | null
+  agent_name: string | null
+}
+export const getMe = () => apiClient.get<Me>('/auth/me').then((r) => r.data)
+
 // --- public roster ---
 export const getCurrentPublicRoster = () => apiClient.get<PublicRoster>('/roster/current').then((r) => r.data)
 export const getPublicRosterForWeek = (weekStartDate: string) =>

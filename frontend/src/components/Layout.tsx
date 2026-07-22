@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
-import { getCurrentWeeklyCycle, listAgents, listAppeals, listShiftTemplates } from '../api/endpoints'
+import { getCurrentWeeklyCycle, getMe, listAgents, listAppeals, listShiftTemplates } from '../api/endpoints'
 import { useTheme } from '../lib/theme'
 import { Avatar, Badge, IconButton, cn } from './ui'
 
@@ -173,7 +173,9 @@ function NotificationsBell() {
 function ProfileMenu() {
   const { role, logout } = useAuth()
   const [open, setOpen] = useState(false)
-  const label = role === 'manager' ? 'Manager' : 'Agent'
+  const { data: me } = useQuery({ queryKey: ['me'], queryFn: getMe, retry: false, staleTime: 5 * 60 * 1000 })
+  const roleLabel = role === 'manager' ? 'Manager' : 'Agent'
+  const name = me?.agent_name ?? (role === 'manager' ? 'Manager' : 'Agent')
   return (
     <div className="relative">
       <button
@@ -181,14 +183,17 @@ function ProfileMenu() {
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         className="flex items-center gap-2 rounded-btn py-1 pl-1 pr-2 transition-colors hover:bg-surface-hover"
       >
-        <Avatar name={label} size={28} />
-        <span className="hidden text-[13px] font-medium text-ink sm:block">{label}</span>
+        <Avatar name={name} size={28} />
+        <span className="hidden max-w-[160px] truncate text-[13px] font-medium text-ink sm:block">{name}</span>
       </button>
       {open && (
-        <div className="absolute right-0 top-11 z-40 w-44 rounded-input border border-line bg-surface p-1 shadow-pop">
+        <div className="absolute right-0 top-11 z-40 w-56 rounded-input border border-line bg-surface p-1 shadow-pop">
           <div className="px-2.5 py-2">
-            <p className="text-[13px] font-medium text-ink">{label} account</p>
-            <p className="text-xs text-ink-muted">Signed in</p>
+            <p className="truncate text-[13px] font-medium text-ink">{name}</p>
+            <p className="truncate text-xs text-ink-muted">{me?.email ?? `${roleLabel} account`}</p>
+            <span className="mt-1.5 inline-block">
+              <Badge tone={role === 'manager' ? 'accent' : 'neutral'}>{roleLabel}</Badge>
+            </span>
           </div>
           <div className="my-1 h-px bg-line" />
           <button
