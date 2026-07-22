@@ -11,14 +11,28 @@ import {
   type LucideIcon,
   Menu,
   MessageSquareWarning,
+  Moon,
   ScrollText,
   Search,
   Settings,
+  Sun,
   X,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { getCurrentWeeklyCycle, listAgents, listAppeals, listShiftTemplates } from '../api/endpoints'
+import { useTheme } from '../lib/theme'
 import { Avatar, Badge, IconButton, cn } from './ui'
+
+function ThemeToggle() {
+  const { resolved, toggle } = useTheme()
+  return (
+    <IconButton
+      icon={resolved === 'dark' ? Sun : Moon}
+      label={resolved === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      onClick={toggle}
+    />
+  )
+}
 
 interface SearchResult {
   id: string
@@ -328,12 +342,15 @@ export default function Layout() {
             <NavLink to="/">
               <BrandMark />
             </NavLink>
-            <NavLink
-              to="/login"
-              className="inline-flex h-8 items-center rounded-btn bg-accent px-3.5 text-[13px] font-medium text-accent-fg shadow-xs transition-colors hover:bg-accent-hover"
-            >
-              Log in
-            </NavLink>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <NavLink
+                to="/login"
+                className="inline-flex h-8 items-center rounded-btn bg-accent px-3.5 text-[13px] font-medium text-accent-fg shadow-xs transition-colors hover:bg-accent-hover"
+              >
+                Log in
+              </NavLink>
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -353,7 +370,7 @@ export default function Layout() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-ink/30 backdrop-blur-[1px]" onClick={() => setMobileOpen(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 border-r border-line bg-surface shadow-pop">
             <div className="absolute right-2 top-3">
               <IconButton icon={X} label="Close menu" onClick={() => setMobileOpen(false)} size="sm" />
@@ -382,6 +399,7 @@ export default function Layout() {
 
             <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
               <CurrentWeekPill />
+              <ThemeToggle />
               <NotificationsBell />
               <div className="hidden h-6 w-px bg-line sm:block" />
               <ProfileMenu />

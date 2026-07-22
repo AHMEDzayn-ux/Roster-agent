@@ -670,7 +670,7 @@ export function Modal({
   if (!open) return null
   const widths = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' }
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/30 p-4 pt-[10vh] backdrop-blur-[1px]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-[10vh] backdrop-blur-[1px]">
       <div className="absolute inset-0" onClick={onClose} aria-hidden />
       <div
         role="dialog"
