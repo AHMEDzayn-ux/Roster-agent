@@ -23,7 +23,10 @@ if config.config_file_name is not None:
 
 import os
 
-config.set_main_option("sqlalchemy.url", os.environ.get("ALEMBIC_TARGET_URL", settings.database_url))
+# Escape '%' so ConfigParser interpolation doesn't choke on URL-encoded
+# passwords (e.g. an '@' encoded as %40); it's un-escaped on read-back.
+_alembic_url = os.environ.get("ALEMBIC_TARGET_URL", settings.database_url)
+config.set_main_option("sqlalchemy.url", _alembic_url.replace("%", "%%"))
 
 # add your model's MetaData object here
 # for 'autogenerate' support
