@@ -13,18 +13,29 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function doLogin(emailValue: string, passwordValue: string) {
     setError(null)
     setSubmitting(true)
     try {
-      await login(email, password)
+      await login(emailValue, passwordValue)
       navigate('/')
     } catch (err) {
       setError(extractErrorMessage(err))
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    await doLogin(email, password)
+  }
+
+  async function loginAsDemo(demoEmail: string, demoPassword: string) {
+    // Reflect the credentials in the form, then sign in.
+    setEmail(demoEmail)
+    setPassword(demoPassword)
+    await doLogin(demoEmail, demoPassword)
   }
 
   return (
@@ -50,6 +61,30 @@ export default function Login() {
             {submitting ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <div className="my-5 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-ink-subtle">
+          <span className="h-px flex-1 bg-line" />
+          Demo access
+          <span className="h-px flex-1 bg-line" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={submitting}
+            onClick={() => loginAsDemo('manager@callroster-demo.com', 'TempCheck123!')}
+          >
+            Manager demo
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={submitting}
+            onClick={() => loginAsDemo('ravi@callroster-demo.com', 'AgentDemo123!')}
+          >
+            Agent demo
+          </Button>
+        </div>
       </div>
     </div>
   )
