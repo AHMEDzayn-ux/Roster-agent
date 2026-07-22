@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CallRoster Pro — The Complete Project Handbook</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', flowchart: { htmlLabels: true, curve: 'basis' }, securityLevel: 'loose' });
+</script>
+<style>
+  :root{
+    --ink:#1a2230; --muted:#5b6675; --accent:#1f6feb; --accent2:#7c3aed;
+    --line:#d7dde5; --bg-soft:#f4f7fb; --code-bg:#0f172a; --code-ink:#e6edf3;
+    --warn:#b45309; --good:#15803d; --bad:#b91c1c;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{
+    font-family:"Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color:var(--ink); line-height:1.6; margin:0; font-size:11.2pt;
+  }
+  .page{max-width:900px; margin:0 auto; padding:24px 34px;}
+  h1,h2,h3,h4{line-height:1.25; color:var(--ink); font-weight:700;}
+  h1{font-size:26pt; margin:0.2em 0 0.1em;}
+  h2{font-size:19pt; border-bottom:3px solid var(--accent); padding-bottom:6px; margin-top:1.6em; color:#123; page-break-after:avoid;}
+  h3{font-size:14pt; margin-top:1.4em; color:#1c2b45; page-break-after:avoid;}
+  h4{font-size:12pt; margin-top:1.1em; color:#33405a; page-break-after:avoid;}
+  p{margin:0.5em 0;}
+  a{color:var(--accent); text-decoration:none;}
+  code{font-family:"Cascadia Code","Consolas",monospace; font-size:0.86em; background:#eef1f6; padding:1px 5px; border-radius:4px; color:#8250df;}
+  pre{background:var(--code-bg); color:var(--code-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:9.4pt; line-height:1.45; page-break-inside:avoid;}
+  pre code{background:none; color:inherit; padding:0; font-size:inherit;}
+  .mermaid{background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center; margin:16px 0; page-break-inside:avoid;}
+  table{border-collapse:collapse; width:100%; margin:14px 0; font-size:10pt; page-break-inside:avoid;}
+  th,td{border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top;}
+  th{background:#eaf0f8; font-weight:700;}
+  tr:nth-child(even) td{background:#fafbfd;}
+  blockquote{margin:12px 0; padding:10px 16px; border-left:4px solid var(--accent); background:var(--bg-soft); border-radius:0 8px 8px 0;}
+  .callout{border-radius:10px; padding:12px 16px; margin:14px 0; page-break-inside:avoid; border:1px solid;}
+  .mentor{background:#f2f9f2; border-color:#bfe3bf;}
+  .mentor h4{margin-top:0.2em; color:var(--good);}
+  .why{background:#f5f2fc; border-color:#d9cdf3;}
+  .why h4{margin-top:0.2em; color:var(--accent2);}
+  .warnbox{background:#fdf6ec; border-color:#f0d8ac;}
+  .warnbox h4{margin-top:0.2em; color:var(--warn);}
+  .tag{display:inline-block; font-size:8.5pt; font-weight:700; padding:2px 8px; border-radius:20px; background:var(--accent); color:#fff; vertical-align:middle;}
+  .tag.get{background:#15803d;} .tag.post{background:#1f6feb;} .tag.patch{background:#b45309;} .tag.del{background:#b91c1c;}
+  .lead{font-size:12.5pt; color:var(--muted);}
+  .cover{min-height:92vh; display:flex; flex-direction:column; justify-content:center; page-break-after:always;}
+  .cover .big{font-size:40pt; line-height:1.05; font-weight:800; letter-spacing:-1px;}
+  .cover .sub{font-size:15pt; color:var(--muted); margin-top:14px;}
+  .cover .meta{margin-top:40px; font-size:10.5pt; color:var(--muted);}
+  .pill{display:inline-block; padding:3px 12px; border:1px solid var(--line); border-radius:20px; margin:3px 4px 3px 0; font-size:9.5pt; background:#fff;}
+  hr{border:none; border-top:1px solid var(--line); margin:26px 0;}
+  .toc{columns:2; column-gap:34px; font-size:10.2pt;}
+  .toc a{display:block; padding:2px 0; color:var(--ink); break-inside:avoid;}
+  .toc .n{color:var(--accent); font-weight:700; display:inline-block; width:26px;}
+  .kicker{text-transform:uppercase; letter-spacing:2px; font-size:9pt; color:var(--accent); font-weight:700;}
+  .small{font-size:9.5pt; color:var(--muted);}
+  .chapter{page-break-before:always;}
+  .qa{margin:10px 0; padding:12px 16px; border:1px solid var(--line); border-radius:8px; page-break-inside:avoid;}
+  .qa .q{font-weight:700; color:#123;}
+  .qa .a{margin-top:5px;}
+  .qa .why-ask{font-size:9.3pt; color:var(--muted); margin-top:5px;}
+  ul,ol{margin:0.4em 0; padding-left:1.4em;}
+  li{margin:2px 0;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .filetree{font-family:"Cascadia Code",monospace; font-size:9pt; background:var(--bg-soft); border:1px solid var(--line); border-radius:8px; padding:14px; white-space:pre; overflow-x:auto;}
+  @media print{ .page{padding:0 8mm;} a{color:var(--ink);} }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ===================== COVER ===================== -->
+<div class="cover">
+  <div class="kicker">The Complete Project Handbook</div>
+  <div class="big">CallRoster&nbsp;Pro</div>
+  <div class="sub">An automated call-center staff-scheduling platform, taught from first principles — so you can explain, defend, and discuss every design decision in a senior-level interview.</div>
+  <div>
+    <span class="pill">FastAPI</span><span class="pill">Google OR-Tools CP-SAT</span><span class="pill">PostgreSQL</span>
+    <span class="pill">SQLAlchemy 2.0</span><span class="pill">Alembic</span><span class="pill">React 19</span>
+    <span class="pill">TypeScript</span><span class="pill">TanStack Query</span><span class="pill">Vite PWA</span>
+    <span class="pill">JWT Auth</span><span class="pill">Cloud Run</span><span class="pill">Supabase</span><span class="pill">Vercel</span>
+  </div>
+  <div class="meta">
+    <strong>Audience:</strong> you, the engineer who built it, preparing to explain it to senior engineers.<br>
+    <strong>Promise:</strong> read this once and you will be able to draw the architecture from memory, trace any request end-to-end, and justify every technology and trade-off.<br>
+    <strong>Ground rule:</strong> every claim here is anchored to real files and functions in this repository. Where something is an assumption, it is labelled as one.
+  </div>
+</div>
+
+<!-- ===================== TOC ===================== -->
+<h2 id="toc">Table of Contents</h2>
+<div class="toc">
+  <a href="#c1"><span class="n">1</span>Executive Overview</a>
+  <a href="#c2"><span class="n">2</span>Overall Architecture</a>
+  <a href="#c3"><span class="n">3</span>Folder Structure</a>
+  <a href="#c4"><span class="n">4</span>Every Important File</a>
+  <a href="#c5"><span class="n">5</span>Every Function (the solver core)</a>
+  <a href="#c6"><span class="n">6</span>Complete Request Flow</a>
+  <a href="#c7"><span class="n">7</span>Database</a>
+  <a href="#c8"><span class="n">8</span>Authentication</a>
+  <a href="#c9"><span class="n">9</span>APIs</a>
+  <a href="#c10"><span class="n">10</span>Frontend</a>
+  <a href="#c11"><span class="n">11</span>Backend</a>
+  <a href="#c12"><span class="n">12</span>Data Flow</a>
+  <a href="#c13"><span class="n">13</span>Optimization Techniques</a>
+  <a href="#c14"><span class="n">14</span>Scalability</a>
+  <a href="#c15"><span class="n">15</span>Security</a>
+  <a href="#c16"><span class="n">16</span>Design Decisions</a>
+  <a href="#c17"><span class="n">17</span>Technology Deep Dive</a>
+  <a href="#c18"><span class="n">18</span>Common Bugs</a>
+  <a href="#c19"><span class="n">19</span>Future Improvements</a>
+  <a href="#c20"><span class="n">20</span>Interview Preparation (100+ Q&amp;A)</a>
+  <a href="#c21"><span class="n">21</span>Deep &ldquo;Why&rdquo; Section</a>
+  <a href="#c22"><span class="n">22</span>Teach Me Like a Mentor — Master Recap</a>
+</div>
+
+<!-- ===================== 1. EXECUTIVE OVERVIEW ===================== -->
+<div class="chapter"></div>
+<h2 id="c1">1 · Executive Overview</h2>
+
+<h3>1.1 What problem does this project solve?</h3>
+<p>Imagine a call center — a team of <em>agents</em> (the people who answer phones) who must be scheduled across <em>shifts</em> (Morning, Evening, Overnight, etc.) seven days a week. Every week a manager must build a <strong>roster</strong>: a grid that says which agent works which shift on which day, while respecting a tangle of competing rules:</p>
+<ul>
+  <li>Every agent is legally/contractually owed a <strong>weekly rest day</strong>.</li>
+  <li>Agents submit <strong>requests</strong> — "I want Friday off", "I need 3 days of leave", "swap me to the evening shift", "I'll take overtime".</li>
+  <li>Certain time slots need a minimum number of agents holding a specific <strong>skill</strong> (e.g. "at least 2 Spanish-speakers between 09:00 and 12:00 on Mondays").</li>
+  <li>Some shifts have a hard <strong>headcount cap</strong> (Overnight = 2 people, no more).</li>
+  <li>Leave is drawn from a finite annual <strong>balance</strong>.</li>
+  <li>When two requests conflict and only one can win, the decision must be <strong>fair</strong> and, all else equal, <strong>first-come-first-served</strong>.</li>
+</ul>
+<p>Done by hand on a spreadsheet, this is slow, error-prone, and feels unfair to staff. <strong>CallRoster Pro turns roster-building into a mathematical optimization problem and solves it automatically</strong> — producing a schedule that satisfies every hard rule and honours as many soft requests as possible, then lets the manager review, tweak, publish, and lock it.</p>
+
+<div class="callout why">
+  <h4>Jargon, immediately unpacked</h4>
+  <ul>
+    <li><strong>Hard constraint</strong> — a rule that must <em>never</em> be broken (a valid schedule with it broken is not a schedule at all). Example: nobody works two shifts on the same day.</li>
+    <li><strong>Soft constraint</strong> — a preference we <em>want</em> satisfied but can sacrifice if necessary, each with a "how much does breaking it hurt" number (a <em>weight</em>). Example: honouring a leave request.</li>
+    <li><strong>Optimization / solver</strong> — software that searches an astronomically large space of possible schedules and returns the best-scoring one, instead of you trying combinations by hand.</li>
+  </ul>
+</div>
+
+<h3>1.2 Who uses it?</h3>
+<table>
+  <tr><th>Role</th><th>What they do in the system</th><th>How they authenticate</th></tr>
+  <tr><td><strong>Manager</strong></td><td>Configures skills, shifts, agents, coverage rules, leave balances, solver weights; opens weekly cycles; generates/reviews/overrides/publishes/locks rosters; reviews requests and appeals; reads the audit log.</td><td>Logs in (JWT), role = <code>manager</code>.</td></tr>
+  <tr><td><strong>Agent</strong></td><td>Submits weekly requests (off-day, leave, shift-change, overtime), views their own roster, leave balance, request outcomes, appeals denied requests, sees their own audit trail.</td><td>Logs in (JWT), role = <code>agent</code>, linked to an <code>agent_id</code>.</td></tr>
+  <tr><td><strong>Public / anyone</strong></td><td>Views the published roster for the current or a given week — no login required.</td><td>None (public endpoint).</td></tr>
+</table>
+
+<h3>1.3 The main workflow (weekly cycle)</h3>
+<div class="mermaid">
+graph LR
+  A[Manager opens<br/>Weekly Cycle] --> B[Agents submit<br/>requests before deadline]
+  B --> C[Manager clicks<br/>Generate Roster]
+  C --> D[CP-SAT solver<br/>builds optimal schedule]
+  D --> E[Manager reviews<br/>conflicts &amp; satisfaction]
+  E --> F{Happy?}
+  F -- tweak --> G[Manual override /<br/>Excel import]
+  G --> E
+  F -- yes --> H[Publish<br/>Fri night auto]
+  H --> I[Agents view roster,<br/>may appeal]
+  I --> J[Lock<br/>Mon 00:00 auto]
+</div>
+
+<h3>1.4 High-level architecture</h3>
+<div class="mermaid">
+graph TD
+  subgraph Client
+    U[Browser / PWA<br/>React 19 + TS]
+  end
+  subgraph Edge
+    V[Vercel static host<br/>+ SPA rewrites]
+  end
+  subgraph Server[Google Cloud Run]
+    F[FastAPI app<br/>Uvicorn/Gunicorn]
+    S[CP-SAT solver<br/>OR-Tools]
+    J[Cron Jobs:<br/>auto-publish / auto-lock]
+  end
+  subgraph Data
+    P[(PostgreSQL<br/>Supabase)]
+  end
+  U -->|HTTPS JSON + JWT| V
+  V -->|/api/* proxied| F
+  F --> S
+  F --> P
+  J --> P
+  J --> S
+</div>
+
+<h3>1.5 Technologies involved (and the one-line reason for each)</h3>
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Why it's here</th></tr>
+  <tr><td>Frontend framework</td><td>React 19 + TypeScript + Vite</td><td>Component UI with compile-time type safety; Vite gives instant dev builds.</td></tr>
+  <tr><td>Server state</td><td>TanStack React Query</td><td>Caches API data, dedupes requests, auto-refetches — no manual global store.</td></tr>
+  <tr><td>Routing / forms</td><td>react-router-dom 7, react-hook-form</td><td>Declarative routes + performant, uncontrolled form handling.</td></tr>
+  <tr><td>Styling / PWA</td><td>Tailwind CSS 4, vite-plugin-pwa</td><td>Utility-first CSS; installable offline-capable app.</td></tr>
+  <tr><td>API framework</td><td>FastAPI (Python)</td><td>Async, auto-validated (Pydantic), auto-documented (OpenAPI/Swagger).</td></tr>
+  <tr><td>The brain</td><td>Google OR-Tools CP-SAT</td><td>Industrial constraint solver — turns scheduling rules into a solvable model.</td></tr>
+  <tr><td>ORM</td><td>SQLAlchemy 2.0 (typed) + Alembic</td><td>Map Python classes to tables; version-control the schema with migrations.</td></tr>
+  <tr><td>Database</td><td>PostgreSQL</td><td>Relational integrity, transactions, mature and free.</td></tr>
+  <tr><td>Auth</td><td>JWT (python-jose) + bcrypt (passlib)</td><td>Stateless tokens; slow salted password hashing.</td></tr>
+  <tr><td>Spreadsheets</td><td>openpyxl</td><td>Managers live in Excel — export/import rosters as <code>.xlsx</code>.</td></tr>
+  <tr><td>Deploy</td><td>Cloud Run + Supabase + Vercel</td><td>Scale-to-zero backend, managed Postgres, global static frontend — ~$0 for a demo.</td></tr>
+</table>
+
+<h3>1.6 The overall request lifecycle (bird's-eye)</h3>
+<div class="mermaid">
+sequenceDiagram
+  participant B as Browser
+  participant AX as axios client
+  participant CR as CORS + Route
+  participant DP as Deps (JWT decode + role)
+  participant EP as Endpoint fn
+  participant SV as Service/CRUD
+  participant DB as PostgreSQL
+  B->>AX: user action (e.g. Generate Roster)
+  AX->>CR: HTTPS request + Bearer token
+  CR->>DP: match route, run dependencies
+  DP->>DP: decode JWT, load user, check role
+  DP->>EP: inject db session + current_user
+  EP->>SV: call business logic
+  SV->>DB: queries inside a transaction
+  DB-->>SV: rows
+  SV-->>EP: domain result
+  EP-->>AX: Pydantic-serialized JSON
+  AX-->>B: React Query caches + renders
+</div>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>CallRoster Pro is a <strong>constraint-optimization product wearing a CRUD app's clothes</strong>. 90% of the endpoints are ordinary create/read/update/delete. The 10% that matters — and the thing an interviewer will dig into — is <code>generate_roster</code> → the CP-SAT model. If you can explain how requests become a weighted objective and rules become constraints, you own this project.</p>
+  <p><strong>Simple analogy:</strong> the solver is a chess engine for schedules. Hard constraints are the rules of chess (illegal moves don't exist). Soft constraints with weights are how it scores a position. It searches, then hands you the best board.</p>
+  <p><strong>Interviewers actually care about:</strong> why a solver instead of hand-written <code>if/else</code> logic; how you keep the model feasible; how fairness and first-come-first-served coexist without one silently overriding the other.</p>
+</div>
+
+<!-- ===================== 2. OVERALL ARCHITECTURE ===================== -->
+<div class="chapter"></div>
+<h2 id="c2">2 · Overall Architecture</h2>
+<p>The generic reference stack in the brief is <em>User → Frontend → Auth → API Gateway → Backend → Database → Cache → Storage → Queue → Notifications → Response</em>. This project deliberately implements <strong>some of those layers and consciously omits others</strong>. A senior interviewer respects "we didn't add a cache because we don't need one yet" far more than a cache bolted on for buzzword completeness. So for each layer we state: what it is, what plays that role here (or that it's absent and why), inputs/outputs, and trade-offs.</p>
+
+<div class="mermaid">
+graph TD
+  U[👤 User<br/>manager / agent / public] --> FE
+  FE[Frontend SPA<br/>React 19 on Vercel] --> AUTH
+  AUTH[Auth layer<br/>JWT bearer in header] --> GW
+  GW[API surface<br/>FastAPI routers = 'gateway'] --> BE
+  BE[Backend services<br/>CRUD + solver + lifecycle] --> DB
+  DB[(PostgreSQL<br/>Supabase)]
+  BE -.no cache.-> CACHE[/Cache — NOT USED/]
+  BE --> STORE[Storage<br/>in-memory xlsx stream]
+  BE -.no broker.-> Q[/Message queue — NOT USED/]
+  BE --> NOTIF[Notifications<br/>conflict reports + audit log]
+  BE --> RESP[Response<br/>Pydantic JSON]
+  RESP --> U
+  style CACHE stroke-dasharray: 5 5,fill:#fbeaea
+  style Q stroke-dasharray: 5 5,fill:#fbeaea
+</div>
+
+<h3>Layer 1 — User</h3>
+<p><strong>Responsibility:</strong> initiates every action. Three personas (manager, agent, public) with different permissions. <strong>Input:</strong> clicks/forms. <strong>Output:</strong> HTTP requests. <strong>Why it exists:</strong> it's the reason the system exists. There is no "replacement".</p>
+
+<h3>Layer 2 — Frontend</h3>
+<p><strong>What it is:</strong> a Single-Page Application (SPA) — one HTML shell that loads a JavaScript bundle which then renders every screen client-side and talks to the backend over JSON. <strong>Here:</strong> React 19 + TypeScript, built by Vite, hosted as static files on Vercel. <strong>Inputs:</strong> user events, cached server data. <strong>Outputs:</strong> HTTPS requests to <code>/api/*</code>, rendered DOM. <strong>Why it exists:</strong> separates presentation from data so the backend is a pure JSON API reusable by web, mobile, or the PWA. <strong>Could be replaced by:</strong> server-rendered templates (Django/Jinja), or a meta-framework (Next.js). <strong>Pros of the SPA choice:</strong> snappy navigation, offline PWA, clean API boundary. <strong>Cons:</strong> initial bundle load, SEO needs care, auth token lives in the browser.</p>
+
+<h3>Layer 3 — Authentication</h3>
+<p><strong>What it is:</strong> proving <em>who</em> you are and <em>what</em> you may do. <strong>Here:</strong> a <strong>JWT</strong> (JSON Web Token) — a signed, self-describing string issued at login and sent on every request in the <code>Authorization: Bearer &lt;token&gt;</code> header. FastAPI dependencies decode and verify it. <strong>Inputs:</strong> email+password (login), then the token. <strong>Outputs:</strong> a verified <code>User</code> object injected into endpoints, or a 401. <strong>Why stateless tokens:</strong> the server keeps no session table, so any instance can serve any request (horizontal scaling for free). <strong>Could be replaced by:</strong> server-side sessions + cookies, or OAuth/OpenID via an identity provider. <strong>Pros:</strong> stateless, simple, scales. <strong>Cons:</strong> can't instantly revoke a token before it expires; token theft = access until expiry. See §8.</p>
+
+<h3>Layer 4 — API Gateway</h3>
+<p><strong>What a gateway is:</strong> a single front door that routes, authenticates, rate-limits, and validates traffic to backend services. <strong>Here there is no separate gateway product</strong> (no Kong/NGINX-as-gateway/AWS API Gateway). FastAPI's router layer plus Cloud Run's built-in HTTPS front end together play that role: routing (<code>app.include_router</code> in <a href="#">main.py</a>), validation (Pydantic), CORS (<code>CORSMiddleware</code>), TLS termination (Cloud Run). <strong>Why no dedicated gateway:</strong> a single service doesn't need one; adding it would be premature complexity. <strong>When you'd add one:</strong> multiple microservices, centralized rate-limiting, or API-key partners (see §14).</p>
+
+<h3>Layer 5 — Backend Services</h3>
+<p><strong>Responsibility:</strong> all business logic. Organized as <em>routes → services/CRUD → solver/domain → models</em>. <strong>Inputs:</strong> validated request data + DB session. <strong>Outputs:</strong> persisted state + response schemas. The crown jewel is the <strong>solver service</strong> (<code>app/solver/</code>). <strong>Could be replaced by:</strong> a different language/framework, but the layering (thin routes, fat services, pure solver) would carry over. Detailed in §11.</p>
+
+<h3>Layer 6 — Database</h3>
+<p><strong>Here:</strong> PostgreSQL, accessed through SQLAlchemy 2.0 ORM, schema-migrated with Alembic. Holds every entity: users, agents, skills, shifts, coverage, cycles, requests, rosters, assignments, conflicts, metrics, appeals, audit log, leave balances, solver weights. <strong>Why relational:</strong> the domain is intensely relational (agents ↔ skills ↔ shifts ↔ coverage) and needs transactional integrity when a roster + its assignments + balance changes must all commit together. Detailed in §7.</p>
+
+<h3>Layer 7 — Cache <span class="tag" style="background:#b91c1c">Not used</span></h3>
+<p><strong>What a cache is:</strong> a fast in-memory store (e.g. Redis) that holds recently-computed answers so you don't recompute or re-query them. <strong>Why absent:</strong> read volume is tiny (one small team), the heaviest computation — the solve — is triggered on demand and stored as rows, and there is no hot read path that repeats an expensive query. Adding Redis now would add an operational dependency for no measurable gain. <strong>What would trigger adding it:</strong> the public roster endpoint getting hammered, or solver results needing memoization. <strong>What we'd lose without ever adding it at scale:</strong> the DB becomes the bottleneck sooner (see §14).</p>
+
+<h3>Layer 8 — Storage</h3>
+<p><strong>What it is:</strong> durable blob/file storage (S3, GCS). <strong>Here:</strong> there is no object store; Excel workbooks are generated <em>in memory</em> (<code>BytesIO</code>) and streamed straight to the browser (<code>export_roster</code> in <a href="#">roster.py</a>), and uploads are read into memory and parsed, never saved. <strong>Why:</strong> files are ephemeral artefacts, not assets to retain. <strong>Trade-off:</strong> zero storage cost/complexity; but very large exports would hold memory (fine at this scale).</p>
+
+<h3>Layer 9 — Message Queue <span class="tag" style="background:#b91c1c">Not used</span></h3>
+<p><strong>What a queue is:</strong> a broker (RabbitMQ, SQS, Celery+Redis) that lets you hand off slow work to background workers so the web request returns immediately. <strong>Here:</strong> the solve runs <em>synchronously</em> inside the request (capped at 30s, see <code>max_time_in_seconds</code>). The only "background" work — auto-publish and auto-lock — runs as <strong>scheduled Cloud Run Jobs / Cloud Scheduler</strong>, not a queue. <strong>Why this is acceptable:</strong> a weekly solve for a small team finishes in well under a second; a queue would add latency and infra for no benefit. <strong>When to add one:</strong> multi-minute solves, or fan-out notifications (email/SMS). See §14/§19.</p>
+
+<h3>Layer 10 — Notifications</h3>
+<p><strong>Here:</strong> no email/SMS/push yet. The system's "notification" surface is <strong>in-app</strong>: <code>ConflictReport</code> rows (why a request was denied), <code>SatisfactionMetric</code> rows (how well each agent did), and the <code>AuditLog</code> (who changed what). Agents pull these via the API. <strong>Why:</strong> keeps the demo self-contained; outbound channels are the obvious next feature (§19).</p>
+
+<h3>Layer 11 — Response</h3>
+<p>Every endpoint returns a <strong>Pydantic-validated JSON</strong> body (or a streamed <code>.xlsx</code>). Pydantic guarantees the shape matches the declared <code>response_model</code>, which is what keeps the TypeScript types on the frontend honest.</p>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>This architecture is a <strong>modular monolith</strong>: one deployable backend with clean internal layers, one database, a decoupled SPA. The interview-winning line is: <em>"We implemented the layers the problem needs and consciously left out cache, queue, and object storage, because at this scale they'd be complexity without benefit — and I can tell you the exact signal that would make me add each one."</em></p>
+  <p><strong>Common confusion:</strong> "no queue" ≠ "no background work". Background work exists (auto-publish/lock) — it's just scheduled, not queued.</p>
+</div>
+
+<!-- ===================== 3. FOLDER STRUCTURE ===================== -->
+<div class="chapter"></div>
+<h2 id="c3">3 · Folder Structure</h2>
+<p>Two top-level apps — <code>backend/</code> (Python/FastAPI) and <code>frontend/</code> (React/TS) — plus deployment docs and <code>docker-compose.yml</code>. Below is the real tree, then every folder explained.</p>
+
+<div class="filetree">Roster-agent/
+├── backend/
+│   ├── alembic/                  # DB migrations (versioned schema history)
+│   │   └── versions/             # one file per schema change
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── deps.py           # shared dependencies: auth, role guards
+│   │   │   ├── errors.py         # error helpers
+│   │   │   └── routes/           # one router file per resource (13 files)
+│   │   ├── core/
+│   │   │   ├── config.py         # env-driven settings (Pydantic)
+│   │   │   └── security.py       # JWT + bcrypt helpers
+│   │   ├── crud/                 # DB read/write functions per resource
+│   │   ├── db/
+│   │   │   ├── base.py           # SQLAlchemy Declarative Base + model imports
+│   │   │   └── session.py        # engine + session factory + get_db()
+│   │   ├── domain/               # pure business rules (no DB): leave, coverage
+│   │   ├── models/               # SQLAlchemy ORM tables + enums
+│   │   ├── schemas/              # Pydantic request/response shapes
+│   │   ├── services/             # orchestration: excel, lifecycle, leave sync
+│   │   ├── solver/               # CP-SAT model (pure) + service (DB glue)
+│   │   ├── tests/                # pytest suite (16 test files)
+│   │   └── main.py               # FastAPI app assembly + CORS + health
+│   └── requirements.txt
+├── frontend/
+│   └── src/
+│       ├── api/                  # axios client + typed endpoint functions
+│       ├── auth/                 # AuthContext (login/logout/token state)
+│       ├── components/           # reusable UI: Layout, RosterGrid, ui.tsx
+│       ├── lib/                  # pure helpers (rosterGrid transforms)
+│       ├── pages/                # route screens (agent/ manager/ public/)
+│       ├── types/                # shared TypeScript interfaces
+│       ├── App.tsx               # route table
+│       └── main.tsx              # React root + providers
+├── docker-compose.yml            # local Postgres + backend + frontend
+└── DEPLOYMENT-*.md               # infra runbooks</div>
+
+<h3>Backend folders</h3>
+<table>
+  <tr><th>Folder</th><th>Why it exists / what belongs / who touches it / if removed</th></tr>
+  <tr><td><code>alembic/versions/</code></td><td><strong>Why:</strong> the database schema is code, versioned like source. Each file is one incremental change (add table, add column). <strong>Interacts with:</strong> <code>models/</code> (the target shape) and <code>db/base.py</code> (metadata). <strong>If removed:</strong> you lose reproducible schema history — new environments can't be built deterministically and prod upgrades become manual/dangerous.</td></tr>
+  <tr><td><code>app/api/routes/</code></td><td><strong>Why:</strong> HTTP entry points, one file per resource (auth, agents, roster, …). Thin: parse → call service → return schema. <strong>Interacts with:</strong> <code>deps.py</code>, <code>crud/</code>, <code>services/</code>, <code>schemas/</code>. <strong>If removed:</strong> the app has no surface; nothing is reachable.</td></tr>
+  <tr><td><code>app/api/deps.py</code></td><td><strong>Why:</strong> cross-cutting dependencies FastAPI injects — DB session, current user, role guards. Centralizes auth so every route doesn't re-implement it. <strong>If removed:</strong> every protected route breaks; no auth enforcement.</td></tr>
+  <tr><td><code>app/core/</code></td><td><strong>Why:</strong> foundational config and security primitives with no business logic. <code>config.py</code> reads env vars; <code>security.py</code> hashes passwords and mints/verifies JWTs. <strong>If removed:</strong> no settings, no auth crypto.</td></tr>
+  <tr><td><code>app/crud/</code></td><td><strong>Why:</strong> the <em>only</em> place that issues DB queries for a resource — "Create/Read/Update/Delete". Keeps SQL out of routes. <strong>If removed:</strong> data-access logic scatters into routes, becoming untestable and duplicated.</td></tr>
+  <tr><td><code>app/db/</code></td><td><strong>Why:</strong> engine, session factory, and the <code>Base</code> all models inherit. <code>session.py</code>'s <code>get_db()</code> yields a session per request and always closes it. <strong>If removed:</strong> no database connectivity at all.</td></tr>
+  <tr><td><code>app/domain/</code></td><td><strong>Why:</strong> <em>pure</em> business rules with zero DB or framework imports — <code>leave.py</code> (which dates a leave covers) and <code>shift_coverage.py</code> (does a shift overlap a slot, incl. overnight wrap). Shared by both the solver and Excel re-validation so the rules can't diverge. <strong>If removed:</strong> the two paths would re-implement the rules and drift out of sync — a classic correctness bug.</td></tr>
+  <tr><td><code>app/models/</code></td><td><strong>Why:</strong> the ORM definition of every table and all enums. The single source of truth for the data shape. <strong>If removed:</strong> nothing maps to the DB.</td></tr>
+  <tr><td><code>app/schemas/</code></td><td><strong>Why:</strong> Pydantic models defining exactly what each endpoint accepts and returns — the validation + serialization boundary. Distinct from ORM models on purpose (never leak DB internals over the wire). <strong>If removed:</strong> no input validation, no typed responses.</td></tr>
+  <tr><td><code>app/services/</code></td><td><strong>Why:</strong> multi-step orchestration that spans several models — <code>roster_excel.py</code> (export/import/override), <code>roster_lifecycle.py</code> (publish/lock, auto-jobs), <code>leave_balance_sync.py</code> (delta balance updates). <strong>If removed:</strong> routes would balloon with tangled logic.</td></tr>
+  <tr><td><code>app/solver/</code></td><td><strong>Why:</strong> the optimization engine. <code>model.py</code> is <em>pure</em> (dataclasses in, dataclasses out, no DB) so it unit-tests without a database; <code>service.py</code> is the glue that reads the DB, builds the input, runs <code>solve</code>, and writes results. <strong>If removed:</strong> the product loses its entire reason to exist.</td></tr>
+  <tr><td><code>app/tests/</code></td><td><strong>Why:</strong> 16 pytest files covering auth, CRUD, solver correctness, lifecycle, excel round-trip, appeals. <strong>If removed:</strong> no safety net; refactoring the solver becomes Russian roulette.</td></tr>
+</table>
+
+<h3>Frontend folders</h3>
+<table>
+  <tr><th>Folder</th><th>Why it exists / if removed</th></tr>
+  <tr><td><code>src/api/</code></td><td><code>client.ts</code> (axios instance + JWT interceptor + 401 handler) and <code>endpoints.ts</code> (one typed function per backend route). <strong>If removed:</strong> no server communication; every component would hand-roll fetches.</td></tr>
+  <tr><td><code>src/auth/</code></td><td><code>AuthContext.tsx</code> — React Context holding token/role/agentId, exposing <code>login/logout</code>. <strong>If removed:</strong> no shared auth state; protected routes can't gate.</td></tr>
+  <tr><td><code>src/components/</code></td><td>Reusable UI: <code>Layout</code> (nav shell), <code>ProtectedRoute</code> (role gate), <code>RosterGrid</code> (the schedule table), <code>ui.tsx</code> (buttons/inputs/cards). <strong>If removed:</strong> duplicated markup everywhere.</td></tr>
+  <tr><td><code>src/lib/</code></td><td>Pure transforms like <code>rosterGrid.ts</code> that reshape flat assignment arrays into a grid. <strong>If removed:</strong> presentation logic leaks into components.</td></tr>
+  <tr><td><code>src/pages/</code></td><td>One component per screen, grouped by persona (<code>agent/</code>, <code>manager/</code>, <code>public/</code>, plus <code>manager/config/</code>). <strong>If removed:</strong> nothing to route to.</td></tr>
+  <tr><td><code>src/types/</code></td><td>TypeScript interfaces mirroring backend schemas — the contract that catches shape mismatches at compile time. <strong>If removed:</strong> lose type safety across the whole client.</td></tr>
+</table>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>The backend is a textbook <strong>layered architecture</strong>: <code>routes</code> (HTTP) → <code>services/crud</code> (orchestration + data) → <code>domain/solver</code> (pure logic) → <code>models</code> (persistence), with <code>schemas</code> guarding the edge. The golden rule the folders enforce: <strong>the solver and domain layers know nothing about HTTP or the database</strong>, which is exactly why they're unit-testable in isolation.</p>
+  <p><strong>Simple analogy:</strong> <code>routes</code> are waiters, <code>services/crud</code> are the kitchen, <code>domain/solver</code> is the recipe (pure knowledge), <code>models</code> are the pantry. Waiters never cook; the recipe never touches the pantry directly.</p>
+</div>
+
+<!-- ===================== 4. EVERY IMPORTANT FILE ===================== -->
+<div class="chapter"></div>
+<h2 id="c4">4 · Every Important File Explained</h2>
+<p>For brevity we cover the load-bearing files in depth (purpose, responsibilities, key functions, callers/callees, I/O, lifecycle, interview hooks, pitfalls). The dozens of near-identical CRUD/route files follow the same pattern, described once at the end.</p>
+
+<h3>4.1 <code>backend/app/main.py</code> — application assembly</h3>
+<p><strong>Purpose:</strong> construct the FastAPI application, attach CORS, register all routers, expose a health check. <strong>Key lines:</strong></p>
+<pre><code>app = FastAPI(title="CallRoster Pro API", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_allowed_origins_list,
+                   allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.include_router(auth.router)   # ... + 12 more routers
+@app.get("/api/health")
+def health() -> dict: return {"status": "ok"}</code></pre>
+<p><strong>Who calls it:</strong> the ASGI server (Uvicorn/Gunicorn) imports <code>app</code>. <strong>Who it calls:</strong> every router module. <strong>Lifecycle:</strong> runs once at process start. <strong>Interview Q:</strong> "Why is CORS configured from an env-var list, not <code>*</code>?" — because <code>allow_credentials=True</code> with wildcard origins is rejected by browsers and is a security anti-pattern; the allowed origins are explicit (localhost dev ports + the deployed Vercel domain). <strong>Common mistake:</strong> forgetting to add the production frontend origin, causing "CORS error" that's really a config gap. <strong>Health check</strong> exists so Cloud Run knows the container is alive.</p>
+
+<h3>4.2 <code>backend/app/core/config.py</code> — settings</h3>
+<p><strong>Purpose:</strong> read configuration from environment/<code>.env</code> via <code>pydantic-settings</code>, fail fast if a required var (like <code>database_url</code> or <code>jwt_secret_key</code>) is missing. <strong>Key detail:</strong> <code>cors_allowed_origins</code> is a comma-string parsed into a list by a computed property — env vars are strings, so this is the clean way to pass a list. <strong>Interview Q:</strong> "Why Pydantic settings over <code>os.environ.get</code>?" — typed, validated, single object, and it errors at boot instead of at first use.</p>
+
+<h3>4.3 <code>backend/app/core/security.py</code> — auth crypto</h3>
+<p><strong>Purpose:</strong> the four primitives of authentication. <strong>Functions:</strong> <code>hash_password</code>/<code>verify_password</code> (bcrypt via passlib) and <code>create_access_token</code>/<code>decode_access_token</code> (HS256 JWT via python-jose). <strong>I/O:</strong> plaintext ↔ hash; claims ↔ signed string. <strong>Lifecycle:</strong> called at login (hash verify + token mint) and on every authenticated request (decode). Fully dissected in §8.</p>
+
+<h3>4.4 <code>backend/app/db/session.py</code> — the connection factory</h3>
+<pre><code>engine = create_engine(settings.database_url)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_db() -> Generator:
+    db = SessionLocal()
+    try: yield db
+    finally: db.close()</code></pre>
+<p><strong>Purpose:</strong> one SQLAlchemy <em>engine</em> (a pool of DB connections) for the whole process; <code>get_db</code> hands each request its own <em>session</em> (a unit of work) and guarantees it closes. <strong>Why <code>yield</code>:</strong> FastAPI treats generator dependencies as setup/teardown — the <code>finally</code> runs after the response is sent, returning the connection to the pool. <strong>Why <code>autocommit=False</code>:</strong> services control transaction boundaries explicitly with <code>db.commit()</code>. <strong>Interview Q:</strong> "What happens if you forget to close sessions?" — connection-pool exhaustion; the app hangs waiting for a free connection.</p>
+
+<h3>4.5 <code>backend/app/domain/shift_coverage.py</code> — overnight-aware overlap</h3>
+<p><strong>Purpose:</strong> answer "does a shift cover a coverage time-slot?", correctly handling shifts that wrap past midnight (21:00→06:00). <strong>Key idea:</strong> <code>shift_intervals</code> splits a wrapping shift into two same-day intervals <code>[(start,23:59:59),(00:00,end)]</code>; <code>intervals_overlap</code> is the classic <code>a_start &lt; b_end AND b_start &lt; a_end</code>; <code>shift_covers_slot</code> returns true if any piece overlaps. <strong>Why pure &amp; shared:</strong> both the solver and Excel re-validation must agree on coverage or a manually-imported roster could pass one check and fail the other. <strong>Interview Q:</strong> "How do you test overnight shifts?" — unit tests feed <code>(21:00,06:00)</code> against morning/overnight slots, no DB needed.</p>
+
+<h3>4.6 <code>backend/app/domain/leave.py</code> — leave date expansion</h3>
+<p><strong>Purpose:</strong> given a leave request type and dates, return the exact list of calendar dates it consumes. <code>leave_full</code>/<code>leave_half</code> → single date; <code>leave_multi</code> → every date in the inclusive range. Also exports the <code>LEAVE_TYPES</code> set used everywhere to branch leave vs. non-leave. <strong>Pitfall it prevents:</strong> off-by-one on the range (<code>(end-start).days + 1</code> is inclusive).</p>
+
+<h3>4.7 <code>backend/app/solver/model.py</code> — the pure CP-SAT model</h3>
+<p><strong>Purpose:</strong> the mathematical heart. Takes plain dataclasses (<code>SolverInput</code>) and returns plain dataclasses (<code>SolverResult</code>) with <em>no</em> database or FastAPI imports — so it's unit-testable and reasoning about it is isolated from I/O. <strong>Main dataclasses:</strong> <code>SolverAgent, SolverShift, SolverCoverageRequirement, SolverRequest, SolverWeights, SolverInput</code> (in) and <code>SolverAssignment, SolverRequestDecision, SolverResult</code> (out). <strong>Main function:</strong> <code>solve(problem)</code>. Dissected line-by-line in §5. <strong>Interview gold:</strong> the module docstring is a spec of every hard vs soft constraint — read it aloud in an interview and you sound like you designed it (you did).</p>
+
+<h3>4.8 <code>backend/app/solver/service.py</code> — DB ↔ solver glue</h3>
+<p><strong>Purpose:</strong> <code>generate_roster(db, week_cycle_id)</code> — load everything the solver needs from Postgres, translate ORM rows into solver dataclasses, run <code>solve</code>, then persist assignments, flip request statuses, sync leave balances, write conflict reports and satisfaction metrics, all in one transaction. <strong>Callers:</strong> the <code>POST /api/roster/generate</code> route and the auto-publish job. <strong>Callees:</strong> <code>solve</code>, <code>sync_leave_balance</code>, <code>get_or_create_solver_weights</code>. <strong>Key subtlety:</strong> it computes the first-come-first-served <code>rank_by_id</code> by sorting requests on <code>(created_at, id)</code> and scales float weights to integers (<code>_scale_weight</code>) because CP-SAT objective coefficients must be integers. Fully traced in §6.</p>
+
+<h3>4.9 <code>backend/app/services/leave_balance_sync.py</code> — delta accounting</h3>
+<p><strong>Purpose:</strong> keep an agent's annual leave balance correct no matter how many times a roster is regenerated. <strong>The clever bit:</strong> it looks at the request's <em>previous</em> status and the <em>new</em> honored/denied outcome and applies only the <strong>delta</strong> — decrement when a request becomes honored, refund when it flips approved→denied, do nothing when unchanged. <strong>Why delta not absolute:</strong> regenerating a roster must be idempotent; naïve "subtract days on approve" would double-charge on the second run. <strong>Interview Q:</strong> "How do you avoid double-deducting leave when the manager regenerates?" — this function is the answer.</p>
+
+<h3>4.10 <code>backend/app/services/roster_lifecycle.py</code> — state machine + cron jobs</h3>
+<p><strong>Purpose:</strong> enforce the roster/cycle state machine (<code>draft → published → locked</code>) and provide the scheduled <code>auto_publish_due_cycles</code> / <code>auto_lock_due_cycles</code>. <strong>Guards:</strong> only a draft can be published, only a published roster can be locked, a locked cycle rejects further changes. <strong>Auto-publish rule (important):</strong> it publishes a due cycle's roster <em>only if it has zero conflicts</em> — anything with unmet requests is held as a draft for human review. <strong>Interview Q:</strong> "How do you prevent an unreviewed bad roster from going live automatically?" — the zero-conflict gate.</p>
+
+<h3>4.11 <code>backend/app/services/roster_excel.py</code> — export / import / override</h3>
+<p><strong>Purpose:</strong> managers live in Excel. This generates a styled workbook (<code>export_roster_workbook</code>), parses an uploaded one (<code>parse_import_file</code>), and — crucially — <strong>re-validates every imported/overridden assignment against the same hard constraints the solver used</strong> (<code>revalidate_and_apply_import</code>, <code>apply_manual_override</code>) before committing. If a human edit violates a hard rule (double-booking, skill mismatch, headcount cap), it's rejected with the exact violations. <strong>Interview Q:</strong> "A manager hand-edits the spreadsheet and breaks a rule — what stops that?" — re-validation reuses <code>domain/</code> logic so import and solver enforce identical rules.</p>
+
+<h3>4.12 The repetitive files (described once)</h3>
+<p>Every resource follows the same trio: <code>models/&lt;x&gt;.py</code> (table), <code>schemas/&lt;x&gt;.py</code> (Pydantic in/out), <code>crud/&lt;x&gt;.py</code> (queries), <code>api/routes/&lt;x&gt;.py</code> (endpoints). For example, <em>skills</em>: <code>Skill</code> model → <code>SkillCreate/SkillOut</code> schemas → <code>crud/skill.py</code> functions → <code>routes/skills.py</code> CRUD endpoints. Learn one and you've learned all thirteen. The <strong>only</strong> non-generic ones are the solver, lifecycle, excel, and leave-sync files above — spend your interview prep there.</p>
+
+<h3>4.13 Frontend key files</h3>
+<table>
+  <tr><th>File</th><th>Purpose &amp; interview hook</th></tr>
+  <tr><td><code>src/api/client.ts</code></td><td>Single axios instance. A <strong>request interceptor</strong> attaches the JWT from <code>localStorage</code>; a <strong>response interceptor</strong> catches 401 and force-logs-out. <code>extractErrorMessage</code> normalizes FastAPI's three error shapes (string, structured object with violations, Pydantic array) into one display string. <em>Q: where does the token live and what are the XSS implications?</em> (§8, §15).</td></tr>
+  <tr><td><code>src/auth/AuthContext.tsx</code></td><td>React Context storing token/role/agentId, initialised lazily from <code>localStorage</code>. <code>login</code> calls the API, then <strong>decodes the JWT client-side</strong> (base64 of the middle segment) to read <code>role</code>/<code>agent_id</code> for routing. <em>Q: is client-side decode a security risk?</em> No — it's only for UX routing; the server re-verifies the signature on every call. Never trust the client decode for authorization.</td></tr>
+  <tr><td><code>src/components/ProtectedRoute.tsx</code></td><td>A route guard: redirects to <code>/login</code> if unauthenticated, or to <code>/</code> if the role doesn't match. Purely a UX gate — real enforcement is server-side.</td></tr>
+  <tr><td><code>src/App.tsx</code></td><td>The whole route table: public <code>/</code>, <code>/login</code>, nested <code>/agent/*</code> and <code>/manager/*</code> trees wrapped in role guards, and a <code>/manager/config/*</code> sub-tree. Reading it top-to-bottom teaches you the entire app's navigation.</td></tr>
+  <tr><td><code>src/components/RosterGrid.tsx</code> + <code>lib/rosterGrid.ts</code></td><td>The visual schedule. The <code>lib</code> function is a <strong>pure transform</strong> turning a flat <code>RosterAssignment[]</code> into an agent×day grid; the component just renders it. Separation = the transform is testable without React.</td></tr>
+</table>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>There are only <strong>~6 files that are truly unique</strong>: <code>solver/model.py</code>, <code>solver/service.py</code>, <code>leave_balance_sync.py</code>, <code>roster_lifecycle.py</code>, <code>roster_excel.py</code>, and the two <code>domain/</code> files. Everything else is one CRUD pattern repeated. In an interview, steer toward those six.</p>
+</div>
+
+<!-- ===================== 5. EVERY FUNCTION (solver) ===================== -->
+<div class="chapter"></div>
+<h2 id="c5">5 · Every Function Explained — the Solver Core</h2>
+<p>This is the most important section, so we go deep on <code>solve()</code> in <code>solver/model.py</code>. First, the mental model, then a phase-by-phase walkthrough of the actual code.</p>
+
+<h3>5.1 What is CP-SAT, from zero?</h3>
+<p><strong>CP</strong> = Constraint Programming: you describe a problem as <em>variables</em> (unknowns), <em>constraints</em> (rules the unknowns must obey), and an <em>objective</em> (a number to minimize/maximize), then a <em>solver</em> finds values that satisfy all constraints and optimize the objective. <strong>SAT</strong> = Boolean satisfiability, the engine underneath. <strong>Google OR-Tools' CP-SAT</strong> is a world-class implementation. <strong>Why use it here instead of hand-written loops?</strong> Scheduling is combinatorial: with <em>n</em> agents × 7 days × several shift modes, the number of possible rosters explodes far beyond brute force, and greedy <code>if/else</code> heuristics get "stuck" (they can't backtrack to honour a later request by rearranging earlier ones). CP-SAT does global search with backtracking and proof of optimality.</p>
+
+<div class="callout why">
+  <h4>The three building blocks in this model</h4>
+  <ul>
+    <li><strong>BoolVar</strong> — a 0/1 unknown. Here: "is agent A <em>off</em> on day D?", "does A work their <em>default</em> shift on D?".</li>
+    <li><strong>Constraint</strong> — e.g. <code>AddExactlyOne(modes)</code>: exactly one of {off, default, requested, possible-shifts} is true per agent per day (this <em>is</em> the no-double-booking rule).</li>
+    <li><strong>Objective</strong> — <code>Minimize(weighted sum of "denied" penalties)</code>: every unhonoured request adds its weight; the solver minimizes total pain.</li>
+  </ul>
+</div>
+
+<h3>5.2 The variable design (the key insight)</h3>
+<p>Instead of a variable per (agent, day, shift, skill) — which explodes — the model uses a compact <strong>"mode" per agent per day</strong>:</p>
+<div class="mermaid">
+graph TD
+  AD["Agent A, Day D<br/>exactly ONE mode"] --> M1[off]
+  AD --> M2[default<br/>→ their default shift]
+  AD --> M3[requested<br/>→ shift they asked to change to]
+  AD --> M4["poss{sid}<br/>→ an alternate shift they may flex onto"]
+  M2 --> SK[then exactly one skill<br/>they cover on that work-day]
+  M3 --> SK
+  M4 --> SK
+</div>
+<pre><code>modes = {"off": model.NewBoolVar(...)}
+if agent.default_shift_id is not None:
+    modes["default"] = model.NewBoolVar(...)
+if d in shift_change_dates and shift_change_dates[d] is not None:
+    modes["requested"] = model.NewBoolVar(...)
+for sid in possible_ids:
+    modes[f"poss{sid}"] = model.NewBoolVar(...)
+model.AddExactlyOne(modes.values())     # ← no double-booking, as one line</code></pre>
+<p>Then for each work-mode, exactly one skill is "covered": <code>model.Add(sum(skill_assigns.values()) == mode_var)</code> — meaning if the mode is chosen (1) exactly one skill assignment is 1; if not chosen (0) all skill assignments are 0.</p>
+
+<h3>5.3 <code>solve(problem: SolverInput) → SolverResult</code> — phase by phase</h3>
+
+<h4>Parameters &amp; return</h4>
+<p><strong>In:</strong> <code>SolverInput</code> = the Monday week-start, lists of agents/shifts/coverage/requests, and the integer <code>SolverWeights</code>. <strong>Out:</strong> <code>SolverResult</code> = status (<code>optimal|feasible|infeasible</code>), the chosen <code>assignments</code>, and per-request <code>decisions</code> (honored true/false).</p>
+
+<h4>Phase 0 — Index the requests</h4>
+<p>Builds <code>requests_by_agent_date</code> (expanding leave into its covered dates via <code>leave_dates</code>) and <code>off_day_request_dates</code>. Skips <code>other</code> requests entirely (not modelled).</p>
+
+<h4>Phase 1 — Decision variables</h4>
+<p>The mode/skill variables from §5.2, per agent per day. <strong>Complexity:</strong> O(agents × 7 × modes × skills) variables.</p>
+
+<h4>Phase 2 — Coverage as a SOFT target (with a shortfall variable)</h4>
+<pre><code>shortfall = model.NewIntVar(0, req.min_agents_required, ...)
+model.Add(sum(terms) + shortfall >= req.min_agents_required)
+objective_terms.append(problem.weights.coverage * shortfall)</code></pre>
+<p><strong>Why a shortfall variable?</strong> If coverage were a hard <code>&gt;=</code>, an understaffed week would make the whole model <em>infeasible</em> — the solver returns nothing and the manager is stuck. Instead, a <code>shortfall</code> "absorbs" missing agents and each missing head is penalized (weight 500, set <em>above</em> every request weight). Result: the solver meets coverage whenever possible, and only ever lets a slot go short as a last resort — degrading gracefully instead of crashing. <strong>This is the single most important design decision in the model.</strong></p>
+
+<h4>Phase 3 — HARD weekly rest day</h4>
+<pre><code>rest_pool = [d for d in week_dates if not any(leave on that day)]
+rest_days_owed = min(agent.default_off_days_per_week, len(rest_pool))
+model.Add(sum(off on rest_pool) == rest_days_owed)</code></pre>
+<p>Every agent takes exactly their owed rest days, chosen only from days they haven't taken leave (leave stacks <em>on top of</em> the guaranteed rest day, never consuming it). The <code>min()</code> prevents a fully-leave week from being infeasible. A <strong>fixed</strong> default off-day additionally pins the rest day to a specific weekday — unless an off-day request overrides the placement that week.</p>
+
+<h4>Phase 4 — HARD per-shift headcount cap</h4>
+<p>For each capped shift (e.g. Overnight <code>max_agents=2</code>) and each day: <code>sum(agents whose chosen mode resolves to that shift) &lt;= max_agents</code>.</p>
+
+<h4>Phase 5 — SOFT request penalties + FCFS tie-breaker</h4>
+<p>For each request on each covered date, a <code>denied</code> BoolVar is tied to whether the wish came true (e.g. leave honored ⇔ agent is off ⇔ <code>denied == 1 - off_var</code>), and <code>weight × denied</code> is added to the objective. Simultaneously an FCFS term <code>protection × denied</code> is accumulated, where <code>protection = num_requests - submitted_rank</code> (earlier submissions cost more to deny).</p>
+
+<h4>Phase 6 — Fairness (minimax)</h4>
+<pre><code>max_denied = model.NewIntVar(0, len+1, "max_denied")
+for agent: model.Add(max_denied >= sum(that agent's denials))
+objective_terms.append(fairness * max_denied)</code></pre>
+<p><strong>Why minimize the maximum, not the total?</strong> Minimizing total denials could dump <em>all</em> denials on one unlucky agent. Minimax spreads the pain — it minimizes the worst individual experience. Classic fairness formulation.</p>
+
+<h4>Phase 7 — The lexicographic objective (the subtle masterpiece)</h4>
+<pre><code>model.Minimize(sum(objective_terms) * (fcfs_cap + 1) + sum(fcfs_terms))</code></pre>
+<p><strong>The problem:</strong> we want FCFS to break <em>ties</em> but never override a real trade-off. <strong>The solution:</strong> scale the main objective by <code>(fcfs_cap + 1)</code>, where <code>fcfs_cap</code> is the largest the entire FCFS term can ever reach. Now any genuine improvement in the main objective (≥1 before scaling) is worth more than the whole FCFS term combined — so FCFS can only ever settle exact ties, deterministically preferring the earlier request. This is <strong>lexicographic optimization via magnitude separation</strong>, and it's a fantastic thing to explain in an interview.</p>
+
+<h4>Phase 8 — Solve &amp; extract</h4>
+<pre><code>solver.parameters.max_time_in_seconds = 30
+status = solver.Solve(model)
+if status not in (OPTIMAL, FEASIBLE): return SolverResult(status="infeasible")</code></pre>
+<p>Then it reads back the chosen assignments and computes each request's <code>honored</code> = <em>all</em> its condition vars are true (matters for multi-day leave spanning several off-vars).</p>
+
+<h3>5.4 Complexity, edge cases, failures</h3>
+<table>
+  <tr><th>Aspect</th><th>Detail</th></tr>
+  <tr><td>Time complexity</td><td>NP-hard in general; CP-SAT is worst-case exponential but empirically fast for this size. Bounded by the 30-second cap — returns best-found feasible solution if not proven optimal.</td></tr>
+  <tr><td>Space complexity</td><td>O(agents × days × modes × skills) variables + constraints; kilobytes for a real team.</td></tr>
+  <tr><td>Edge: no default shift</td><td>Agent can only be "off"; rest-day quota is skipped (meaningless).</td></tr>
+  <tr><td>Edge: fully-leave week</td><td><code>min(owed, len(rest_pool))</code> keeps it feasible.</td></tr>
+  <tr><td>Edge: overnight coverage</td><td>Handled by <code>shift_covers_slot</code> interval-splitting.</td></tr>
+  <tr><td>Failure: truly infeasible hard set</td><td>e.g. a required skill nobody holds → status infeasible → service raises 422 with a plain-English reason.</td></tr>
+</table>
+
+<h3>5.5 Alternatives considered</h3>
+<table>
+  <tr><th>Alternative</th><th>Why not chosen</th></tr>
+  <tr><td>Greedy heuristic (sort requests, assign one by one)</td><td>Can't backtrack; produces unfair, sub-optimal rosters; "first agent gets everything".</td></tr>
+  <tr><td>Integer Linear Programming (e.g. PuLP/CBC)</td><td>Works, but CP-SAT is faster on Boolean-heavy scheduling and has cleaner primitives (<code>AddExactlyOne</code>, reification).</td></tr>
+  <tr><td>Genetic algorithm / simulated annealing</td><td>No optimality proof, harder to guarantee hard constraints, non-deterministic.</td></tr>
+  <tr><td>Hand-written rules engine</td><td>Unmaintainable as constraints grow; every new rule risks breaking others.</td></tr>
+</table>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>Three sentences win the solver conversation: <strong>(1)</strong> "Hard rules are constraints, soft wishes are weighted penalties in a minimize objective." <strong>(2)</strong> "Coverage is soft with a shortfall variable so the model can never be made infeasible by understaffing — it degrades gracefully." <strong>(3)</strong> "Fairness is minimax and FCFS is a lexicographic tie-breaker scaled below the main objective so it can never override a real decision."</p>
+  <p><strong>Simple analogy:</strong> the objective is a golf score — every denied wish adds strokes. Coverage denials cost a lot, leave a medium amount, shift-changes a little. The solver plays the whole course to card the lowest total, then uses "who asked first" only to break a literal tie.</p>
+</div>
+
+<!-- ===================== 6. REQUEST FLOW ===================== -->
+<div class="chapter"></div>
+<h2 id="c6">6 · Complete Request Flow — "Manager clicks <em>Generate Roster</em>"</h2>
+<p>We trace one request through <strong>every</strong> component, because it exercises auth, routing, the solver, transactions, and multiple tables.</p>
+
+<div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant UI as RosterWorkspace.tsx
+  participant AX as axios (client.ts)
+  participant MW as CORS + Router
+  participant DEP as require_manager (deps.py)
+  participant EP as generate() (routes/roster.py)
+  participant SVC as generate_roster (solver/service.py)
+  participant SOLVE as solve() (solver/model.py)
+  participant SYNC as sync_leave_balance
+  participant DB as PostgreSQL
+  UI->>AX: generateRoster(weekCycleId)
+  AX->>MW: POST /api/roster/generate?week_cycle_id=5 (Bearer JWT)
+  MW->>DEP: route matched, run dependency
+  DEP->>DEP: decode JWT → load User → assert role==manager
+  DEP->>EP: inject db, current_user
+  EP->>SVC: generate_roster(db, 5)
+  SVC->>DB: load cycle, agents(+skills+possible shifts), shifts, coverage, requests, weights
+  SVC->>SVC: rank requests by (created_at,id); build SolverInput; scale weights ×100
+  SVC->>SOLVE: solve(SolverInput)
+  SOLVE-->>SVC: SolverResult(status, assignments, decisions)
+  alt infeasible
+    SVC-->>EP: raise RosterGenerationError(422)
+    EP-->>AX: 422 + reason
+  else feasible
+    SVC->>DB: insert Roster + RosterAssignments
+    loop each decision
+      SVC->>SVC: flip request status approved/denied
+      SVC->>SYNC: if leave, delta-adjust balance
+      SVC->>DB: insert ConflictReport if denied
+    end
+    SVC->>DB: insert SatisfactionMetrics (per-agent + aggregate)
+    SVC->>DB: COMMIT
+    SVC-->>EP: Roster
+    EP->>DB: record_audit("roster_generated"); COMMIT
+    EP-->>AX: 201 {roster, assignments, conflicts, satisfaction}
+  end
+  AX-->>UI: React Query caches; grid + conflict panel render
+</div>
+
+<h3>Step-by-step narration</h3>
+<ol>
+  <li><strong>Frontend trigger:</strong> the manager clicks "Generate" in <code>RosterWorkspace.tsx</code>; a React Query mutation calls <code>generateRoster(weekCycleId)</code> from <code>endpoints.ts</code>.</li>
+  <li><strong>axios interceptor</strong> attaches <code>Authorization: Bearer &lt;jwt&gt;</code> from localStorage and sends <code>POST /api/roster/generate?week_cycle_id=5</code>.</li>
+  <li><strong>CORS middleware</strong> checks the Origin against the allow-list; the router matches the path.</li>
+  <li><strong>Dependency <code>require_manager</code></strong> runs before the endpoint: <code>get_current_user</code> decodes the JWT (<code>decode_access_token</code>), loads the <code>User</code>, checks <code>active</code>; then asserts <code>role == manager</code> (else 403). The router also has a router-level <code>dependencies=[Depends(require_manager)]</code>, so this is enforced twice by design.</li>
+  <li><strong>Endpoint <code>generate()</code></strong> calls <code>generate_roster(db, 5)</code> inside a try/except that maps <code>RosterGenerationError</code> to the right HTTP status.</li>
+  <li><strong>Service loads state</strong> with eager-loaded relationships (<code>joinedload(Agent.skill_links, Agent.possible_shift_links)</code>) to avoid N+1 queries, filters requests to <code>pending|approved</code> and non-<code>other</code>, and fetches the singleton solver weights.</li>
+  <li><strong>Build &amp; scale:</strong> requests are ranked FCFS; float weights are multiplied by 100 (<code>_scale_weight</code>) because CP-SAT needs integers.</li>
+  <li><strong>Solve</strong> (§5). If infeasible → 422 with a human reason.</li>
+  <li><strong>Persist in one transaction:</strong> insert <code>Roster</code> (flush to get its id) → insert every <code>RosterAssignment</code> → for each request decision, flip status, delta-sync leave balance, insert a <code>ConflictReport</code> if denied → insert per-agent and aggregate <code>SatisfactionMetric</code> → <code>db.commit()</code>.</li>
+  <li><strong>Audit:</strong> the route records an audit entry (<code>roster_generated</code>) and commits.</li>
+  <li><strong>Response:</strong> a 201 with roster + assignments + conflicts + satisfaction; React Query caches it and the grid, conflict list, and satisfaction bars render.</li>
+</ol>
+
+<div class="callout warnbox">
+  <h4>Common confusion to preempt</h4>
+  <p>Two commits happen — one inside the service (roster + assignments + balances) and one in the route (audit). An interviewer may ask "isn't that two transactions; what if the audit fails?" Honest answer: yes, they're separate; the audit is best-effort metadata, so a rare audit failure doesn't roll back a valid roster. A stricter design would wrap both in one transaction — a fair "future improvement" to volunteer.</p>
+</div>
+
+<!-- ===================== 7. DATABASE ===================== -->
+<div class="chapter"></div>
+<h2 id="c7">7 · Database</h2>
+
+<h3>7.1 Why PostgreSQL (relational)?</h3>
+<p>The domain is a web of relationships with strict integrity needs: an assignment must reference a real agent, shift, and skill; a roster's rows must all commit or none; a leave balance has a uniqueness rule (one row per agent per year). Relational databases give <strong>foreign keys</strong> (referential integrity), <strong>transactions</strong> (all-or-nothing writes — ACID), and <strong>constraints</strong> (uniqueness). A document DB (MongoDB) would push all that integrity into application code. Postgres specifically: free, rock-solid, great typing, and Supabase offers managed Postgres on a free tier.</p>
+
+<div class="callout why">
+  <h4>ACID, unpacked</h4>
+  <p><strong>A</strong>tomicity (all-or-nothing), <strong>C</strong>onsistency (constraints always hold), <strong>I</strong>solation (concurrent transactions don't corrupt each other), <strong>D</strong>urability (committed = survives a crash). Roster generation relies on Atomicity: if anything fails mid-write, the half-built roster vanishes on rollback.</p>
+</div>
+
+<h3>7.2 Schema (entity-relationship)</h3>
+<div class="mermaid">
+erDiagram
+  USERS ||--o| AGENTS : "linked to"
+  AGENTS ||--o{ AGENT_SKILLS : has
+  SKILLS ||--o{ AGENT_SKILLS : "held by"
+  AGENTS ||--o{ AGENT_POSSIBLE_SHIFTS : "can flex to"
+  SHIFT_TEMPLATES ||--o{ AGENT_POSSIBLE_SHIFTS : "offered as"
+  AGENTS }o--|| SHIFT_TEMPLATES : "default shift"
+  SKILLS ||--o{ COVERAGE_REQUIREMENTS : "required for"
+  WEEKLY_CYCLES ||--o{ WEEKLY_REQUESTS : contains
+  AGENTS ||--o{ WEEKLY_REQUESTS : submits
+  WEEKLY_CYCLES ||--o{ ROSTERS : produces
+  ROSTERS ||--o{ ROSTER_ASSIGNMENTS : contains
+  ROSTERS ||--o{ CONFLICT_REPORTS : reports
+  ROSTERS ||--o{ SATISFACTION_METRICS : scores
+  WEEKLY_REQUESTS ||--o{ APPEALS : "may be appealed"
+  AGENTS ||--o{ LEAVE_BALANCES : "yearly balance"
+  USERS ||--o{ AUDIT_LOG : "acts in"
+</div>
+
+<h3>7.3 Why each table exists</h3>
+<table>
+  <tr><th>Table</th><th>Reason to exist / notable fields</th></tr>
+  <tr><td><code>users</code></td><td>Login identity + role. <code>agent_id</code> links a login to an agent profile (managers may have none). <code>hashed_password</code> never stores plaintext.</td></tr>
+  <tr><td><code>agents</code></td><td>The schedulable person. <code>default_shift_id</code>, <code>default_off_day_type</code> (fixed/flexible), <code>default_off_day</code>, <code>default_off_days_per_week</code> drive the solver's rest-day logic.</td></tr>
+  <tr><td><code>skills</code>, <code>agent_skills</code></td><td>Many-to-many: an agent holds several skills; a skill is held by many. Coverage is expressed per skill.</td></tr>
+  <tr><td><code>agent_possible_shifts</code></td><td>Alternate shifts an agent may flex onto (e.g. cover Overnight 1–2 days). Feeds the solver's <code>poss{sid}</code> modes.</td></tr>
+  <tr><td><code>shift_templates</code></td><td>Named time windows. <code>max_agents</code> is the hard per-day headcount cap; <code>end&lt;start</code> encodes overnight shifts.</td></tr>
+  <tr><td><code>coverage_requirements</code></td><td>Per weekday + time-slot + skill minimum staffing. <code>is_peak</code>/<code>weight</code> for future prioritization.</td></tr>
+  <tr><td><code>weekly_cycles</code></td><td>The unit of scheduling. Holds the four deadline timestamps (request, publish, appeal, lock) and status. <code>week_start_date</code> is unique — one cycle per week.</td></tr>
+  <tr><td><code>weekly_requests</code></td><td>An agent's ask for a given cycle. Type, dates, optional shift/half-day, status, <code>denial_reason</code>, <code>submitted_via</code> (form vs ai_parsed), <code>created_at</code> (drives FCFS).</td></tr>
+  <tr><td><code>rosters</code>, <code>roster_assignments</code></td><td>The output. A roster has many assignments (agent/date/shift/skill/source). <code>source</code> distinguishes solver vs manual override.</td></tr>
+  <tr><td><code>conflict_reports</code></td><td>Human-readable "why this request wasn't honored", with severity — the notification surface.</td></tr>
+  <tr><td><code>satisfaction_metrics</code></td><td>Per-agent and aggregate honored-request percentage — the fairness/quality dashboard.</td></tr>
+  <tr><td><code>appeals</code></td><td>An agent's challenge to a denied request; manager resolves with response + timestamp.</td></tr>
+  <tr><td><code>leave_balances</code></td><td>Annual allotment/taken/remaining per agent per year. <code>UniqueConstraint(agent_id, year)</code> prevents duplicates.</td></tr>
+  <tr><td><code>solver_weights</code></td><td>Singleton (id=1) of tunable soft-constraint weights — lets managers reshape solver behavior without code.</td></tr>
+  <tr><td><code>audit_log</code></td><td>Append-only trail: actor, action, target, old/new value, reason, timestamp. <code>actor_id</code> null = system action.</td></tr>
+</table>
+
+<h3>7.4 Normalization, indexes, constraints, concurrency</h3>
+<ul>
+  <li><strong>Normalization:</strong> the schema is ~3NF — no repeating groups, join tables for many-to-many (<code>agent_skills</code>), no duplicated agent data across rosters. This avoids update anomalies (change a skill name once, not per assignment).</li>
+  <li><strong>Denormalization:</strong> deliberately minimal. <code>satisfaction_metrics</code> is a mild denormalization — a precomputed percentage stored rather than recomputed on read — justified because it's a snapshot of a specific roster.</li>
+  <li><strong>Indexes:</strong> primary keys are indexed automatically; unique constraints (<code>users.email</code>, <code>skills.name</code>, <code>weekly_cycles.week_start_date</code>, <code>leave_balances(agent_id,year)</code>) create unique indexes. <em>Interview-honest note:</em> the foreign-key columns queried hottest (e.g. <code>roster_assignments.roster_id</code>, <code>weekly_requests.week_cycle_id</code>) would benefit from explicit indexes — a concrete, easy optimization to name (§13/§19).</li>
+  <li><strong>Constraints:</strong> foreign keys everywhere; NOT NULL on required fields; unique constraints as above; enums enforced at the DB level (<code>Enum(..., name="request_type")</code>).</li>
+  <li><strong>Transactions &amp; locks:</strong> <code>generate_roster</code> does its whole write in one transaction. SQLAlchemy sessions use Postgres' default <em>read-committed</em> isolation. There's no explicit row-locking; the app's write pattern (one manager generating a roster) has low contention. Under high concurrency you'd add optimistic locking / <code>SELECT … FOR UPDATE</code> (§14).</li>
+  <li><strong>Connection pooling:</strong> the single <code>create_engine</code> maintains a pool; each request borrows and returns a connection via <code>get_db</code>. On Supabase, the docs specify the <em>Session</em> pooler (port 5432) because migrations and long-lived connections need session mode.</li>
+</ul>
+
+<h3>7.5 Migration strategy (Alembic)</h3>
+<p><strong>What Alembic is:</strong> version control for schema. Each file in <code>alembic/versions/</code> has <code>upgrade()</code>/<code>downgrade()</code> and a parent revision, forming a chain. History here: initial schema → add solver-weights table → add agent-possible-shifts table → add shift <code>max_agents</code> → drop a default-off-day weight. <strong>Why not autocreate tables?</strong> <code>Base.metadata.create_all</code> can't evolve an existing DB safely; migrations give reproducible, reversible, reviewable changes and are run once on deploy.</p>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>Relational + transactional because roster writes are multi-row and must be atomic. The schema is normalized with join tables for the many-to-manys. The two constraints worth quoting: <code>UniqueConstraint(agent_id, year)</code> on balances and unique <code>week_start_date</code> on cycles. The honest optimization to volunteer: add indexes on hot foreign keys.</p>
+  <p><strong>Analogy:</strong> tables are labelled filing cabinets, foreign keys are cross-reference stickers, transactions are "staple these five forms together or file none of them".</p>
+</div>
+
+<!-- ===================== 8. AUTHENTICATION ===================== -->
+<div class="chapter"></div>
+<h2 id="c8">8 · Authentication &amp; Authorization</h2>
+
+<h3>8.1 How login works (end to end)</h3>
+<div class="mermaid">
+sequenceDiagram
+  participant U as User
+  participant FE as AuthContext.login
+  participant EP as POST /api/auth/login
+  participant SEC as security.py
+  participant DB as users table
+  U->>FE: email + password
+  FE->>EP: {email, password}
+  EP->>DB: get_user_by_email
+  EP->>SEC: verify_password(plain, hashed)
+  SEC-->>EP: true/false (bcrypt)
+  alt valid
+    EP->>SEC: create_access_token(sub, role, agent_id)
+    SEC-->>EP: signed JWT (HS256)
+    EP-->>FE: {access_token}
+    FE->>FE: decode payload client-side, store token+role+agentId in localStorage
+  else invalid
+    EP-->>FE: 401 Incorrect email or password
+  end
+</div>
+
+<h3>8.2 The JWT lifecycle</h3>
+<p><strong>What a JWT is:</strong> three base64url segments <code>header.payload.signature</code>. The payload here carries <code>sub</code> (user id), <code>role</code>, <code>agent_id</code>, and <code>exp</code> (expiry). The signature is <code>HMAC-SHA256(header.payload, jwt_secret_key)</code> — only someone with the secret can produce it, so the server can trust an unmodified token without a database lookup for the token itself.</p>
+<pre><code>def create_access_token(*, subject, role, agent_id):
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)  # 480 min = 8h
+    payload = {"sub": subject, "role": role, "agent_id": agent_id, "exp": expire}
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm="HS256")
+
+def decode_access_token(token):
+    try: return jwt.decode(token, settings.jwt_secret_key, algorithms=["HS256"])
+    except JWTError: raise ValueError("Invalid or expired token")</code></pre>
+<p><strong>On every request:</strong> <code>get_current_user</code> (deps.py) extracts the bearer token, decodes+verifies it (signature and <code>exp</code> checked by python-jose), reads <code>sub</code>, loads the <code>User</code>, and rejects if the user is missing or inactive. Then <code>require_manager</code>/<code>require_agent</code> enforce the role.</p>
+
+<h3>8.3 Refresh tokens, sessions, cookies</h3>
+<p><strong>Honest scope statement:</strong> this project uses a <strong>single 8-hour access token, no refresh token, and no server-side session</strong>. The token is stored in <code>localStorage</code>, not a cookie. That's a deliberate simplification for the product's scale (small team, short shifts). The trade-offs, and how you'd evolve it, are in §15/§19.</p>
+
+<h3>8.4 Authorization / RBAC</h3>
+<p><strong>RBAC</strong> = Role-Based Access Control: permissions attach to roles, not individuals. Two roles: <code>manager</code> and <code>agent</code>. Enforcement is layered: (1) route-level <code>dependencies=[Depends(require_manager)]</code> on whole routers (e.g. all of <code>/api/roster</code>), (2) per-endpoint guards, and (3) ownership checks (an agent's <code>/mine</code> endpoints filter by <em>their</em> <code>agent_id</code> from the token, so one agent can't read another's data).</p>
+
+<h3>8.5 Threats &amp; mitigations</h3>
+<table>
+  <tr><th>Threat</th><th>What it is</th><th>Mitigation here</th></tr>
+  <tr><td>Password theft</td><td>DB leak exposes passwords</td><td>bcrypt (salted, slow) — never plaintext; passlib upgrades hashes over time.</td></tr>
+  <tr><td>Token tampering</td><td>User edits their JWT to become manager</td><td>HMAC signature check fails → 401. You can't forge without the secret.</td></tr>
+  <tr><td>Replay attack</td><td>Stolen token reused</td><td><code>exp</code> limits the window to 8h. (No revocation list — a known gap; §15.)</td></tr>
+  <tr><td>SQL injection</td><td>Malicious input as SQL</td><td>SQLAlchemy parameterizes all queries — inputs are never string-concatenated into SQL.</td></tr>
+  <tr><td>XSS</td><td>Injected script reads localStorage token</td><td>React escapes rendered content by default; no <code>dangerouslySetInnerHTML</code>. (localStorage is still JS-reachable — see §15.)</td></tr>
+  <tr><td>CSRF</td><td>Another site makes authed requests using your cookie</td><td>Largely N/A: auth is a bearer header, not a cookie, so a cross-site form can't attach it automatically.</td></tr>
+  <tr><td>Privilege escalation</td><td>Agent hits a manager route</td><td><code>require_manager</code> returns 403; client-side role check is only cosmetic.</td></tr>
+</table>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>Login = verify bcrypt hash, mint an HS256 JWT carrying <code>sub/role/agent_id/exp</code>. Every request re-verifies the signature and role server-side; the client-side decode is <em>only</em> for routing UX. The one line that impresses: <em>"authorization is enforced on the server on every request — the frontend guard is convenience, not security."</em></p>
+  <p><strong>Common confusion:</strong> "the frontend checks the role, so it's secure." No — anyone can call the API directly; security is the server-side <code>require_manager</code> dependency.</p>
+</div>
+
+<!-- ===================== 9. APIs ===================== -->
+<div class="chapter"></div>
+<h2 id="c9">9 · APIs</h2>
+<p>All endpoints are under <code>/api</code>. Auth column: 🌐 public · 👤 any logged-in · 🧑‍💼 manager only. Full inventory:</p>
+
+<table>
+  <tr><th>Method + Path</th><th>Auth</th><th>Purpose</th></tr>
+  <tr><td><span class="tag post">POST</span> /auth/login</td><td>🌐</td><td>Exchange credentials for a JWT.</td></tr>
+  <tr><td><span class="tag post">POST</span> /auth/users</td><td>🧑‍💼</td><td>Create a user account (manager provisions logins).</td></tr>
+  <tr><td><span class="tag get">GET</span> /roster/current</td><td>🌐</td><td>Public published roster for the current week.</td></tr>
+  <tr><td><span class="tag get">GET</span> /roster/{week_start_date}</td><td>🌐</td><td>Public roster for a given week.</td></tr>
+  <tr><td><span class="tag get">GET</span>/<span class="tag post">POST</span>/<span class="tag patch">PATCH</span>/<span class="tag del">DEL</span> /skills</td><td>👤/🧑‍💼</td><td>CRUD skills.</td></tr>
+  <tr><td>… /shift-templates</td><td>👤/🧑‍💼</td><td>CRUD shifts (read any logged-in; write manager).</td></tr>
+  <tr><td>… /coverage-requirements</td><td>🧑‍💼</td><td>CRUD coverage minimums.</td></tr>
+  <tr><td>… /agents</td><td>🧑‍💼</td><td>CRUD agents (+ skills, possible shifts, off-day config).</td></tr>
+  <tr><td>… /leave-balances</td><td>👤/🧑‍💼</td><td>Agents read <code>/mine</code>; managers CRUD any.</td></tr>
+  <tr><td><span class="tag get">GET</span> /weekly-cycles, /current, <span class="tag post">POST</span></td><td>👤/🧑‍💼</td><td>List/read cycles; create (manager).</td></tr>
+  <tr><td><span class="tag post">POST</span> /requests, <span class="tag get">GET</span> /mine, <span class="tag get">GET</span> "", <span class="tag patch">PATCH</span> /{id}</td><td>👤/🧑‍💼</td><td>Submit request; list mine; list all + review (manager).</td></tr>
+  <tr><td><span class="tag get">GET</span>/<span class="tag patch">PATCH</span> /solver-config</td><td>🧑‍💼</td><td>Read/tune solver weights.</td></tr>
+  <tr><td><span class="tag post">POST</span> /roster/generate</td><td>🧑‍💼</td><td>Run the solver, persist a draft roster.</td></tr>
+  <tr><td><span class="tag get">GET</span> /roster/{id}/detail·assignments·conflicts·satisfaction</td><td>🧑‍💼</td><td>Read a roster and its analytics.</td></tr>
+  <tr><td><span class="tag post">POST</span> /roster/{id}/publish · /lock</td><td>🧑‍💼</td><td>Advance the state machine.</td></tr>
+  <tr><td><span class="tag get">GET</span> /roster/{id}/export · <span class="tag post">POST</span> /import · /override</td><td>🧑‍💼</td><td>Excel round-trip &amp; manual override (re-validated).</td></tr>
+  <tr><td>… /appeals (POST, /mine, "", PATCH)</td><td>👤/🧑‍💼</td><td>Agents file/read appeals; managers list/resolve.</td></tr>
+  <tr><td><span class="tag get">GET</span> /audit, /audit/mine</td><td>👤/🧑‍💼</td><td>Manager sees all; agent sees their own trail.</td></tr>
+  <tr><td><span class="tag get">GET</span> /health</td><td>🌐</td><td>Liveness probe.</td></tr>
+</table>
+
+<h3>Anatomy of one endpoint (the pattern for all)</h3>
+<p>Take <code>PATCH /api/requests/{id}</code> (review a request): <strong>Request</strong> = path id + <code>WeeklyRequestReview</code> body (validated by Pydantic). <strong>Auth</strong> = <code>require_manager</code>. <strong>Business logic</strong> = load request (404 if missing) → capture old status → <code>crud.review_request</code> → write an audit row → commit. <strong>Response</strong> = <code>WeeklyRequestOut</code>. <strong>Status codes</strong> = 200 ok, 404 not found, 400 domain error, 401 no token, 403 wrong role, 422 validation. <strong>Optimization</strong> = single query load, single commit. Every route mirrors this: <em>validate → authorize → delegate to crud/service → audit → serialize</em>.</p>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>The API is RESTful and resource-oriented: nouns as paths, HTTP verbs as actions, Pydantic <code>response_model</code> on everything for typed output, and consistent status codes. Public roster reads need no auth by design — that's the "anyone can see the schedule" requirement.</p>
+</div>
+
+<!-- ===================== 10. FRONTEND ===================== -->
+<div class="chapter"></div>
+<h2 id="c10">10 · Frontend</h2>
+
+<h3>10.1 Routing</h3>
+<p><code>react-router-dom</code> v7 with nested routes in <code>App.tsx</code>. A shared <code>Layout</code> wraps everything; <code>ProtectedRoute role="…"</code> gates the <code>/agent</code> and <code>/manager</code> subtrees; <code>/manager/config</code> nests its own child routes rendered into an <code>&lt;Outlet/&gt;</code>. Vercel's <code>vercel.json</code> rewrite sends all non-<code>/api</code> paths to <code>index.html</code> so client-side routing works on refresh/deep-link.</p>
+
+<h3>10.2 State management — the key decision</h3>
+<p>There is <strong>no Redux</strong>. State is split by nature:</p>
+<ul>
+  <li><strong>Server state</strong> (data owned by the backend) → <strong>TanStack React Query</strong>. It caches responses, dedupes concurrent requests, refetches on invalidation, and exposes <code>isLoading/isError</code>. Mutations (generate, review, publish) call <code>queryClient.invalidateQueries</code> to refresh dependent views.</li>
+  <li><strong>Auth state</strong> (token/role) → a small React <strong>Context</strong> (<code>AuthContext</code>), persisted to <code>localStorage</code>.</li>
+  <li><strong>Local UI state</strong> (form fields, modals) → component <code>useState</code> + <code>react-hook-form</code>.</li>
+</ul>
+<div class="callout why">
+  <h4>Why React Query instead of Redux?</h4>
+  <p>Most "global state" in CRUD apps is really <em>cached server data</em>. Redux forces you to hand-write fetching, caching, and invalidation. React Query gives all three for free, so the app needs no global client store. Interview line: <em>"I separated server state from client state; server state is a cache, and React Query is a purpose-built cache."</em></p>
+</div>
+
+<h3>10.3 Data fetching, caching, forms, validation</h3>
+<ul>
+  <li><strong>Fetching:</strong> typed functions in <code>endpoints.ts</code> wrap the shared axios client; components call them inside <code>useQuery</code>/<code>useMutation</code>.</li>
+  <li><strong>Caching:</strong> React Query keeps results by query key; navigating back is instant from cache, then revalidated.</li>
+  <li><strong>Forms:</strong> <code>react-hook-form</code> uses uncontrolled inputs (refs) so typing doesn't re-render the whole form — performant by default; validation rules are declared per field.</li>
+  <li><strong>Error display:</strong> <code>extractErrorMessage</code> flattens FastAPI's varied error shapes into one string.</li>
+</ul>
+
+<h3>10.4 Rendering, performance, PWA</h3>
+<ul>
+  <li><strong>Pure transforms</strong> (<code>lib/rosterGrid.ts</code>) keep components thin and testable.</li>
+  <li><strong>PWA:</strong> <code>vite-plugin-pwa</code> with <code>registerType:'autoUpdate'</code> generates a service worker + manifest, making the app installable and offline-capable for the shell.</li>
+  <li><strong>Code splitting:</strong> Vite/Rollup splits the bundle; route-level lazy loading is the obvious next optimization (§13).</li>
+  <li><strong>Memoization:</strong> <code>useMemo</code> in <code>AuthContext</code> stabilizes the context value so consumers don't re-render on every parent render.</li>
+</ul>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>The frontend's headline decision is <strong>"server state ≠ client state"</strong>. React Query owns the former; a tiny Context owns auth; components own trivial UI state. That single distinction is why there's no bulky global store, and it's the most likely frontend interview topic.</p>
+</div>
+
+<!-- ===================== 11. BACKEND ===================== -->
+<div class="chapter"></div>
+<h2 id="c11">11 · Backend</h2>
+<h3>11.1 The layering, named in industry terms</h3>
+<table>
+  <tr><th>Layer</th><th>This project</th><th>Responsibility</th></tr>
+  <tr><td>Controller</td><td><code>api/routes/*</code></td><td>HTTP parse, authorize, delegate, serialize. No business logic.</td></tr>
+  <tr><td>Service</td><td><code>services/*</code>, <code>solver/service.py</code></td><td>Multi-step orchestration across models + external logic (solver).</td></tr>
+  <tr><td>Repository</td><td><code>crud/*</code></td><td>The only place issuing DB queries per resource.</td></tr>
+  <tr><td>Domain</td><td><code>domain/*</code>, <code>solver/model.py</code></td><td>Pure business rules, no I/O.</td></tr>
+  <tr><td>Model</td><td><code>models/*</code></td><td>Persistence mapping.</td></tr>
+  <tr><td>Schema</td><td><code>schemas/*</code></td><td>Edge validation/serialization.</td></tr>
+</table>
+
+<h3>11.2 Dependency Injection</h3>
+<p><strong>What DI is:</strong> instead of a function creating its own dependencies, they're <em>passed in</em>. FastAPI's <code>Depends()</code> is DI: <code>db: Session = Depends(get_db)</code> and <code>current_user = Depends(require_manager)</code> mean the framework builds and injects those before your endpoint runs. <strong>Why it matters:</strong> testability (inject a fake DB/user), reuse (auth logic written once), and clean signatures. In tests, <code>conftest.py</code> overrides <code>get_db</code> to point at the test database.</p>
+
+<h3>11.3 Middleware, validation, errors, logging, config</h3>
+<ul>
+  <li><strong>Middleware:</strong> only CORS is registered globally; auth is per-route via dependencies (more granular than a blanket middleware).</li>
+  <li><strong>Validation:</strong> Pydantic schemas reject malformed bodies with 422 automatically, before your code runs.</li>
+  <li><strong>Error handling:</strong> domain errors (<code>RosterGenerationError</code>, <code>WeeklyRequestError</code>, <code>RosterImportError</code>, <code>RosterLifecycleError</code>) carry a <code>status_code</code> + <code>detail</code>; routes translate them into <code>HTTPException</code>. Import/override errors also return a structured <code>violations</code> list.</li>
+  <li><strong>Configuration:</strong> all secrets/URLs via env → <code>Settings</code>. Nothing hard-coded.</li>
+  <li><strong>Logging:</strong> currently relies on Uvicorn/Cloud Run request logs; structured app logging + tracing is a named future improvement (§18/§19).</li>
+</ul>
+
+<div class="callout mentor">
+  <h4>What you should remember</h4>
+  <p>Thin controllers, fat services, pure domain, repository-only DB access. DI via <code>Depends</code> is what makes auth reusable and the whole thing testable. If asked "how is this maintainable?", the answer is the strict layering — each layer has exactly one reason to change.</p>
+</div>
+
+<!-- ===================== 12. DATA FLOW ===================== -->
+<div class="chapter"></div>
+<h2 id="c12">12 · Data Flow</h2>
+<h3>12.1 Read path (agent views their roster)</h3>
+<div class="mermaid">
+graph LR
+  C[Component useQuery] --> E[endpoints.ts]
+  E --> AX[axios + JWT]
+  AX --> R[route] --> CR[crud query] --> DB[(Postgres)]
+  DB --> CR --> R --> AX --> RQ[React Query cache] --> UI[render]
+</div>
+<h3>12.2 Write path with state change (generate roster)</h3>
+<p>Covered fully in §6. The data transformation chain: <em>ORM rows → solver dataclasses → CP-SAT variables → solution → ORM rows (assignments, statuses, balances, conflicts, metrics) → Pydantic JSON → React Query cache → grid</em>.</p>
+<h3>12.3 Background jobs</h3>
+<div class="mermaid">
+graph TD
+  CS[Cloud Scheduler] --> J1[auto_publish_cycles job]
+  CS --> J2[auto_lock_cycles job]
+  J1 --> LC[roster_lifecycle.auto_publish_due_cycles]
+  J2 --> LK[roster_lifecycle.auto_lock_due_cycles]
+  LC --> DB[(Postgres)]
+  LK --> DB
+</div>
+<p><strong>Publish rule:</strong> Saturday 00:00, publish only conflict-free rosters; hold the rest as drafts. <strong>Lock rule:</strong> Monday 00:00, lock cycle + its published roster. Both idempotent (safe to re-run).</p>
+<h3>12.4 Real-time?</h3>
+<p>None. There are no WebSockets/SSE; the UI is request-response with React Query revalidation. Real-time roster updates would be a future feature (§19).</p>
+
+<!-- ===================== 13. OPTIMIZATION ===================== -->
+<div class="chapter"></div>
+<h2 id="c13">13 · Optimization Techniques</h2>
+<table>
+  <tr><th>Technique</th><th>Where / How</th><th>Why &amp; trade-off</th></tr>
+  <tr><td>Eager loading (N+1 fix)</td><td><code>joinedload(Agent.skill_links, Agent.possible_shift_links)</code> in <code>generate_roster</code></td><td>Loads agents+skills+shifts in one query instead of one-per-agent. Trade-off: a slightly larger single query vs many round trips.</td></tr>
+  <tr><td>Solver time cap</td><td><code>max_time_in_seconds = 30</code></td><td>Bounds worst-case latency; returns best feasible if not proven optimal. Trade-off: near-optimal, not always optimal, on hard weeks.</td></tr>
+  <tr><td>Integer weight scaling</td><td><code>_scale_weight(x)=int(x*100)</code></td><td>CP-SAT needs integer coefficients; ×100 preserves 2-decimal precision.</td></tr>
+  <tr><td>Compact variable model</td><td>"mode per agent-day" not per shift</td><td>Fewer variables → faster solve; the <code>AddExactlyOne</code> encodes no-double-booking for free.</td></tr>
+  <tr><td>Lexicographic scaling</td><td>objective ×(fcfs_cap+1)</td><td>Encodes a strict priority (FCFS never overrides real trade-offs) in a single objective — cheaper than solving twice.</td></tr>
+  <tr><td>Delta balance sync</td><td><code>sync_leave_balance</code></td><td>Only applies the change since last state → idempotent regeneration, no double-charge.</td></tr>
+  <tr><td>Client caching</td><td>React Query</td><td>Instant navigation, fewer requests; trade-off: staleness handled via invalidation.</td></tr>
+  <tr><td>In-memory Excel streaming</td><td><code>BytesIO</code> + <code>StreamingResponse</code></td><td>No temp files/storage; trade-off: memory-bound for huge exports.</td></tr>
+  <tr><td>Connection pooling</td><td>single engine</td><td>Reuses TCP+auth handshakes; trade-off: pool size tuning under load.</td></tr>
+  <tr><td>Uncontrolled forms</td><td>react-hook-form</td><td>Fewer re-renders while typing.</td></tr>
+</table>
+<h4>Named-but-not-yet-applied (honest, and good to volunteer)</h4>
+<p>Explicit indexes on hot FKs, pagination on list endpoints, route-level lazy loading/code-splitting, response compression (gzip/brotli), and rate limiting. Each is a one-line "here's exactly what I'd add and when" in an interview.</p>
+
+<!-- ===================== 14. SCALABILITY ===================== -->
+<div class="chapter"></div>
+<h2 id="c14">14 · Scalability — what breaks first, at each scale</h2>
+<table>
+  <tr><th>Scale</th><th>What breaks first</th><th>Fix</th></tr>
+  <tr><td>10 users</td><td>Nothing. Cloud Run scale-to-zero + free Postgres is plenty.</td><td>—</td></tr>
+  <tr><td>100 users</td><td>Still fine. Maybe cold-start latency on Cloud Run.</td><td>Min-instances=1 to kill cold starts.</td></tr>
+  <tr><td>1,000 users</td><td>Unindexed list queries slow; more agents = longer solves.</td><td>Add FK indexes; paginate; keep solve per-team not global.</td></tr>
+  <tr><td>10,000 users</td><td>DB connections + write contention; single solve blocks a worker for up to 30s.</td><td>Connection pooler (PgBouncer/Supabase pooler); move solve to a queue + worker pool; add Redis cache for public roster reads.</td></tr>
+  <tr><td>1,000,000 users</td><td>Single Postgres write ceiling; one region latency.</td><td>Read replicas; partition/shard by organization (multi-tenant); CDN for the SPA; autoscaled stateless API behind a load balancer; regional deployments.</td></tr>
+</table>
+<div class="mermaid">
+graph TD
+  LB[Load Balancer] --> A1[API instance] & A2[API instance] & A3[API instance]
+  A1 & A2 & A3 --> PB[PgBouncer pool]
+  PB --> PRIMARY[(Postgres primary)]
+  PRIMARY --> R1[(read replica)] & R2[(read replica)]
+  A1 & A2 & A3 --> REDIS[(Redis cache)]
+  A1 & A2 & A3 --> Q[Queue] --> W[Solver workers]
+  CDN[CDN] --> SPA[Static frontend]
+</div>
+<p><strong>Why the design already scales horizontally:</strong> the API is <em>stateless</em> (JWT, no server session) so you can run N identical instances behind a load balancer with zero coordination. The natural sharding key is the <strong>organization/tenant</strong> — this app is single-tenant today; multi-tenancy is the biggest architectural leap (§19).</p>
+
+<!-- ===================== 15. SECURITY ===================== -->
+<div class="chapter"></div>
+<h2 id="c15">15 · Security</h2>
+<table>
+  <tr><th>Concern</th><th>Decision in this codebase</th></tr>
+  <tr><td>Authentication</td><td>bcrypt-hashed passwords; HS256 JWT bearer tokens with 8h expiry.</td></tr>
+  <tr><td>Authorization</td><td>Server-side RBAC via <code>require_manager/require_agent</code>; ownership filtering on <code>/mine</code> routes.</td></tr>
+  <tr><td>Transport encryption</td><td>HTTPS/TLS terminated by Cloud Run &amp; Vercel — tokens never travel in clear.</td></tr>
+  <tr><td>Secrets</td><td><code>jwt_secret_key</code>, <code>database_url</code> from env only; never committed. Cloud Run env vars / Secret Manager in prod.</td></tr>
+  <tr><td>Input validation</td><td>Pydantic on every request body/query; rejects bad types before logic runs.</td></tr>
+  <tr><td>SQL injection</td><td>SQLAlchemy parameterized queries — no string-built SQL anywhere.</td></tr>
+  <tr><td>XSS</td><td>React auto-escapes; no raw HTML injection.</td></tr>
+  <tr><td>CSRF</td><td>Bearer-header auth (not cookies) means cross-site requests can't ride along.</td></tr>
+  <tr><td>CORS</td><td>Explicit origin allow-list (not <code>*</code>) with credentials.</td></tr>
+  <tr><td>File upload</td><td>Excel read into memory, parsed with openpyxl, and <strong>every row re-validated against hard constraints</strong> before commit — a bad file can't corrupt the roster.</td></tr>
+  <tr><td>Audit</td><td>Append-only <code>audit_log</code> records every sensitive mutation with actor + old/new value.</td></tr>
+</table>
+<div class="callout warnbox">
+  <h4>Known gaps to own honestly (maturity signal in interviews)</h4>
+  <ul>
+    <li><strong>Token in localStorage</strong> → reachable by any XSS. Mitigation path: httpOnly cookie + CSRF token, or short access token + refresh rotation.</li>
+    <li><strong>No token revocation</strong> → a stolen token is valid until <code>exp</code>. Add a denylist or short-lived tokens + refresh.</li>
+    <li><strong>No rate limiting</strong> → login is brute-forceable. Add per-IP throttling / lockout.</li>
+    <li><strong>Two-commit generate flow</strong> (roster vs audit) — could be one transaction.</li>
+  </ul>
+  <p>Naming your own gaps <em>with</em> the fix is exactly what separates a senior answer from a junior one.</p>
+</div>
+
+<!-- ===================== 16. DESIGN DECISIONS ===================== -->
+<div class="chapter"></div>
+<h2 id="c16">16 · Design Decisions</h2>
+<table>
+  <tr><th>Decision</th><th>Chosen</th><th>Rejected &amp; why</th><th>Trade-off</th></tr>
+  <tr><td>Scheduling engine</td><td>OR-Tools CP-SAT</td><td>Hand heuristics (unfair/stuck), ILP (slower here), GA (no optimality)</td><td>Learning curve vs global optimality.</td></tr>
+  <tr><td>Coverage constraint</td><td>Soft w/ shortfall var</td><td>Hard <code>&gt;=</code> (makes model infeasible when understaffed)</td><td>May under-cover as last resort vs never crashing.</td></tr>
+  <tr><td>Fairness</td><td>Minimax denials</td><td>Minimize total (dumps pain on one agent)</td><td>Slightly higher total denials, far fairer spread.</td></tr>
+  <tr><td>Tie-break</td><td>Lexicographic FCFS</td><td>Arbitrary/random tie-break</td><td>Extra scaling math vs deterministic fairness.</td></tr>
+  <tr><td>Auth</td><td>Stateless JWT</td><td>Server sessions (need shared store to scale)</td><td>No instant revocation vs free horizontal scaling.</td></tr>
+  <tr><td>Client state</td><td>React Query</td><td>Redux (boilerplate for cache)</td><td>Less "one store" mental model vs far less code.</td></tr>
+  <tr><td>Backend</td><td>FastAPI</td><td>Django (heavier), Flask (less async/validation)</td><td>Younger ecosystem vs speed + Pydantic + OpenAPI.</td></tr>
+  <tr><td>Purity split</td><td>Pure solver/domain</td><td>DB access inside solver (untestable)</td><td>Extra mapping code vs unit-testable core.</td></tr>
+  <tr><td>Deploy</td><td>Cloud Run + Supabase + Vercel</td><td>Always-on VM (costs money idle)</td><td>Cold starts vs ~$0 scale-to-zero.</td></tr>
+</table>
+
+<!-- ===================== 17. TECHNOLOGY DEEP DIVE ===================== -->
+<div class="chapter"></div>
+<h2 id="c17">17 · Technology Deep Dive</h2>
+
+<h3>FastAPI</h3>
+<p><strong>What:</strong> a modern Python web framework built on Starlette (ASGI) + Pydantic. <strong>How it works:</strong> type hints drive automatic request validation, dependency injection, and OpenAPI docs; async endpoints run on an event loop. <strong>Here:</strong> every route, the <code>Depends</code> auth, the Pydantic schemas. <strong>Misconception:</strong> "async makes everything faster" — CPU-bound work (the solve) still blocks the worker; async helps I/O concurrency. <strong>Alternatives:</strong> Django REST, Flask, Express. <strong>Pros:</strong> speed, validation, docs. <strong>Cons:</strong> younger than Django, fewer batteries.</p>
+
+<h3>Google OR-Tools CP-SAT</h3>
+<p><strong>What:</strong> a constraint/SAT solver. <strong>Internals:</strong> lazy-clause-generation SAT engine with linear/integer reasoning, presolve, and parallel search; proves optimality or returns best-found within the time budget. <strong>Here:</strong> the entire <code>solve()</code>. <strong>Misconception:</strong> "it's AI/ML" — no, it's exact combinatorial optimization, deterministic and provable. <strong>Alternatives:</strong> Gurobi/CPLEX (commercial), PuLP+CBC, custom heuristics. <strong>Pros:</strong> free, fast, expressive. <strong>Cons:</strong> modelling skill required; large models can be slow.</p>
+
+<h3>SQLAlchemy 2.0 + Alembic</h3>
+<p><strong>What:</strong> a Python ORM (object-relational mapper) + migration tool. <strong>Internals:</strong> the <em>Unit of Work</em> pattern — a session tracks changes and flushes them as SQL on commit; the <em>Identity Map</em> ensures one Python object per row. <strong>Here:</strong> typed <code>Mapped[...]</code> models, relationships, <code>joinedload</code> for eager loading. <strong>Misconception:</strong> "ORMs are always slow" — the N+1 problem is the usual culprit, avoided here with eager loading. <strong>Alternatives:</strong> raw SQL, Django ORM, Tortoise. <strong>Pros:</strong> safety, portability. <strong>Cons:</strong> abstraction can hide expensive queries.</p>
+
+<h3>JWT (python-jose) + bcrypt (passlib)</h3>
+<p><strong>JWT internals:</strong> base64url header+payload signed with HMAC-SHA256; verification recomputes the HMAC with the secret. <strong>bcrypt:</strong> a deliberately slow, salted hash (work factor) so brute-forcing stolen hashes is costly. <strong>Misconception:</strong> "JWTs are encrypted" — they're <em>signed, not encrypted</em>; anyone can read the payload, so never put secrets in it. <strong>Alternatives:</strong> opaque session tokens, PASETO, Argon2 (for hashing).</p>
+
+<h3>React 19 + TypeScript + Vite + TanStack Query</h3>
+<p><strong>React:</strong> component model with a virtual DOM diff; hooks for state/effects. <strong>TypeScript:</strong> compile-time types catch shape bugs. <strong>Vite:</strong> native-ESM dev server (instant HMR) + Rollup production builds. <strong>React Query:</strong> a server-state cache with keys, staleness, and invalidation. <strong>Misconception:</strong> "React Query is a state manager" — it's a <em>server-cache</em>; client state still needs Context/useState.</p>
+
+<h3>Cloud Run + Supabase + Vercel</h3>
+<p><strong>Cloud Run:</strong> serverless containers, scale-to-zero, pay-per-request, HTTPS + autoscaling built in. <strong>Supabase:</strong> managed Postgres (+ auth/storage we don't use). <strong>Vercel:</strong> global static/edge hosting for the SPA with SPA rewrites. <strong>Why this trio:</strong> ~$0 for a demo, each best-in-class at its job, all managed.</p>
+
+<!-- ===================== 18. COMMON BUGS ===================== -->
+<div class="chapter"></div>
+<h2 id="c18">18 · Common Bugs &amp; Debugging</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>How to debug</th></tr>
+  <tr><td>"CORS error" in browser</td><td>Frontend origin not in allow-list, or hitting wrong base URL</td><td>Check <code>cors_allowed_origins</code> env + <code>VITE_API_BASE_URL</code>; inspect the failed preflight in Network tab.</td></tr>
+  <tr><td>Generate returns 422 "no feasible roster"</td><td>A required skill nobody active holds, or contradictory hard rules</td><td>Check coverage requirements vs agent skills; the error text names the cause.</td></tr>
+  <tr><td>Leave balance drifting wrong</td><td>Balance updated outside <code>sync_leave_balance</code>, or missing balance row for the year</td><td>Confirm every path goes through the delta sync; verify a <code>leave_balances</code> row exists for that agent+year.</td></tr>
+  <tr><td>401 loops to login</td><td>Expired/invalid JWT; the response interceptor force-logs-out</td><td>Check token <code>exp</code>; re-login; verify <code>jwt_secret_key</code> matches between deploys.</td></tr>
+  <tr><td>Excel import rejected</td><td>A hand edit violates a hard constraint</td><td>Read the returned <code>violations</code> list — it names each broken rule.</td></tr>
+  <tr><td>Roster page blank on refresh</td><td>Missing SPA rewrite</td><td>Confirm <code>vercel.json</code> rewrites non-<code>/api</code> to <code>index.html</code>.</td></tr>
+  <tr><td>Connection pool exhausted</td><td>Sessions not closed / wrong Supabase pooler mode</td><td>Ensure <code>get_db</code> teardown runs; use Session pooler (5432).</td></tr>
+</table>
+<p><strong>Observability today:</strong> Uvicorn/Cloud Run request logs + pytest (16 suites) as the correctness net. <strong>What's missing:</strong> structured logging, error tracking (Sentry), and distributed tracing — the honest "monitoring" answer and a §19 item.</p>
+
+<!-- ===================== 19. FUTURE ===================== -->
+<div class="chapter"></div>
+<h2 id="c19">19 · Future Improvements</h2>
+<table>
+  <tr><th>Scale of change</th><th>What you'd do</th></tr>
+  <tr><td><strong>10× larger</strong></td><td>Add FK indexes + pagination; move solve to a background queue with a job-status endpoint; min-instances to remove cold starts; structured logging + Sentry; refresh-token rotation; rate limiting.</td></tr>
+  <tr><td><strong>100× larger</strong></td><td>Multi-tenancy (organization column + row-level isolation); Redis cache for public roster; read replicas; per-tenant solver workers; email/SMS notifications via a queue; feature flags.</td></tr>
+  <tr><td><strong>Enterprise</strong></td><td>SSO/OIDC + SCIM provisioning; audit export &amp; compliance (SOC2); sharding by tenant; multi-region; solver as its own service with warm pools; real-time roster updates over WebSockets; fine-grained permissions beyond two roles.</td></tr>
+</table>
+<p><strong>Product-level:</strong> the <code>submitted_via = ai_parsed</code> enum and the "other" request type hint at a planned natural-language request intake (an agent types "I need next Friday off" and an LLM structures it) — a clean place to add a Claude-powered parser.</p>
+
+<!-- ===================== 20. INTERVIEW PREP ===================== -->
+<div class="chapter"></div>
+<h2 id="c20">20 · Interview Preparation — 100+ Questions</h2>
+<p>Grouped by theme. Each: ideal answer · why it's asked · common wrong answer. Follow-ups are implied by the "why".</p>
+
+<h3>A. Architecture (1–12)</h3>
+<div class="qa"><div class="q">1. Describe the system in two minutes.</div><div class="a">A modular-monolith FastAPI backend that turns weekly scheduling into a CP-SAT optimization problem, a Postgres store, and a React SPA; managers configure rules and generate/publish rosters, agents submit requests and view outcomes.</div><div class="why-ask">Tests whether you own the whole picture, not just pieces.</div></div>
+<div class="qa"><div class="q">2. Why a monolith, not microservices?</div><div class="a">One small team, one bounded domain; a monolith is simpler to deploy, test, and reason about. Clean internal layers mean I can split out the solver later if needed. Microservices would add network hops and ops burden for no benefit.</div><div class="why-ask">Checks maturity — resisting premature complexity.</div></div>
+<div class="qa"><div class="q">3. Why no cache/queue/object-store?</div><div class="a">Low read volume, synchronous sub-second solve, ephemeral files. Each would be complexity without benefit at this scale — and I can name the exact signal that would make me add each one.</div><div class="why-ask">Distinguishes cargo-culting from judgement.</div><div class="why-ask">Wrong answer: "I should have added Redis for best practice."</div></div>
+<div class="qa"><div class="q">4. How does it scale horizontally?</div><div class="a">The API is stateless (JWT, no session), so N instances behind a load balancer need no coordination; DB is the shared state.</div></div>
+<div class="qa"><div class="q">5. Where's the single point of failure?</div><div class="a">Postgres. Mitigate with replicas/failover; the app tier is replaceable.</div></div>
+<div class="qa"><div class="q">6. Why FastAPI over Django?</div><div class="a">Async, Pydantic validation, auto OpenAPI, and I don't need Django's ORM/admin/templates since the frontend is a separate SPA.</div></div>
+<div class="qa"><div class="q">7. What's a modular monolith?</div><div class="a">One deployable with strict internal module boundaries — the maintainability of services without the distributed-systems cost.</div></div>
+<div class="qa"><div class="q">8. How are background jobs run without a queue?</div><div class="a">Cloud Scheduler triggers Cloud Run Jobs that call idempotent lifecycle functions (auto-publish/lock).</div></div>
+<div class="qa"><div class="q">9. Why keep the solver pure?</div><div class="a">No DB/HTTP imports means it unit-tests in isolation and its logic is reasoned about without infrastructure.</div></div>
+<div class="qa"><div class="q">10. What's the deployment topology?</div><div class="a">Frontend on Vercel, backend container on Cloud Run, Postgres on Supabase, scheduled jobs on Cloud Scheduler.</div></div>
+<div class="qa"><div class="q">11. How do frontend and backend communicate?</div><div class="a">HTTPS JSON under <code>/api</code>; dev proxied by Vite, prod via <code>VITE_API_BASE_URL</code>; JWT in the Authorization header.</div></div>
+<div class="qa"><div class="q">12. What would you extract into a service first?</div><div class="a">The solver — it's CPU-bound and the natural async/worker boundary.</div></div>
+
+<h3>B. The Solver (13–30)</h3>
+<div class="qa"><div class="q">13. Why a constraint solver at all?</div><div class="a">Scheduling is combinatorial with interacting rules; a solver does global search with backtracking and optimality, where greedy heuristics get stuck and are unfair.</div><div class="why-ask">The core differentiator of this project.</div></div>
+<div class="qa"><div class="q">14. Hard vs soft constraints — give examples.</div><div class="a">Hard: exactly-one-mode-per-day (no double-booking), weekly rest, shift headcount cap. Soft: honouring leave/off-day/shift-change/overtime, coverage, fairness.</div></div>
+<div class="qa"><div class="q">15. How is no-double-booking encoded?</div><div class="a"><code>AddExactlyOne</code> over the per-day mode variables {off, default, requested, poss…}.</div></div>
+<div class="qa"><div class="q">16. Why is coverage soft, not hard?</div><div class="a">A hard floor makes an understaffed week infeasible — the solver returns nothing. A shortfall variable absorbs missing agents and penalizes them heavily (weight 500, above all requests), so it degrades gracefully and only under-covers as a last resort.</div><div class="why-ask">The single best design decision to explain.</div></div>
+<div class="qa"><div class="q">17. What is the objective function?</div><div class="a">Minimize the weighted sum of "denied" indicators for each soft wish, plus a minimax fairness term, plus a scaled FCFS tie-breaker.</div></div>
+<div class="qa"><div class="q">18. Why minimax fairness?</div><div class="a">Minimizing total denials could pile them on one agent; minimizing the maximum per-agent denials spreads pain fairly.</div></div>
+<div class="qa"><div class="q">19. How does FCFS not override real trade-offs?</div><div class="a">Lexicographic scaling: multiply the main objective by (fcfs_cap+1) so any genuine 1-unit improvement outweighs the entire FCFS term; FCFS only settles exact ties.</div><div class="why-ask">Tests depth of optimization understanding.</div></div>
+<div class="qa"><div class="q">20. Why scale weights by 100?</div><div class="a">CP-SAT coefficients must be integers; weights carry 2 decimals, so ×100 preserves proportions.</div></div>
+<div class="qa"><div class="q">21. How do overnight shifts work in coverage?</div><div class="a"><code>shift_covers_slot</code> splits a wrapping shift into two same-day intervals and checks overlap.</div></div>
+<div class="qa"><div class="q">22. What happens on a truly infeasible week?</div><div class="a">Only hard constraints can cause it (e.g. required skill nobody holds); status=infeasible → 422 with a plain-English reason.</div></div>
+<div class="qa"><div class="q">23. Why cap solve at 30s?</div><div class="a">Bounds request latency; returns best-found feasible solution if optimality isn't proven in time.</div></div>
+<div class="qa"><div class="q">24. How is leave different from an off-day?</div><div class="a">Leave draws from a balance and stacks on top of the guaranteed rest day; an off-day just relocates the single rest day.</div></div>
+<div class="qa"><div class="q">25. How is "honored" computed for multi-day leave?</div><div class="a">All of its per-date condition variables must be true (<code>all(...)</code>).</div></div>
+<div class="qa"><div class="q">26. Why the "mode" variable design?</div><div class="a">Compactness — one exactly-one choice per agent-day encodes double-booking prevention and shift selection with few variables.</div></div>
+<div class="qa"><div class="q">27. Is CP-SAT deterministic?</div><div class="a">Given the same input and seed, yes; and FCFS makes tie-breaking deterministic across otherwise-equal solutions.</div></div>
+<div class="qa"><div class="q">28. Complexity of the model?</div><div class="a">NP-hard generally; variable count O(agents×days×modes×skills); empirically fast at team scale, bounded by the cap.</div></div>
+<div class="qa"><div class="q">29. How would you add "no more than 5 consecutive workdays"?</div><div class="a">A sliding-window constraint over the off-variables — sum of "worked" in any 6-day window ≥ 1 off. Great follow-up to volunteer.</div></div>
+<div class="qa"><div class="q">30. Why not machine learning?</div><div class="a">This needs provable rule-satisfaction and optimality, not prediction; ML can't guarantee hard constraints.</div></div>
+
+<h3>C. Database (31–45)</h3>
+<div class="qa"><div class="q">31. Why relational?</div><div class="a">Heavily related data + transactional multi-row writes + integrity constraints. Documents would push integrity into app code.</div></div>
+<div class="qa"><div class="q">32. Explain a many-to-many here.</div><div class="a">Agents↔Skills via the <code>agent_skills</code> join table.</div></div>
+<div class="qa"><div class="q">33. What's normalized, what's denormalized?</div><div class="a">Mostly 3NF; <code>satisfaction_metrics</code> stores a precomputed percentage snapshot — a justified mild denormalization.</div></div>
+<div class="qa"><div class="q">34. Which unique constraints and why?</div><div class="a"><code>(agent_id, year)</code> on balances, <code>week_start_date</code> on cycles, <code>email</code>, <code>skill.name</code> — prevent duplicates/ambiguity.</div></div>
+<div class="qa"><div class="q">35. Where would you add indexes?</div><div class="a">Hot FKs like <code>roster_assignments.roster_id</code>, <code>weekly_requests.week_cycle_id</code>.</div><div class="why-ask">Checks you understand query cost, not just schema.</div></div>
+<div class="qa"><div class="q">36. How are transactions used?</div><div class="a"><code>generate_roster</code> writes roster+assignments+balances+conflicts+metrics in one commit; a failure rolls all back.</div></div>
+<div class="qa"><div class="q">37. What isolation level?</div><div class="a">Postgres default read-committed; low write contention (single manager generating).</div></div>
+<div class="qa"><div class="q">38. What's the N+1 problem and where did you avoid it?</div><div class="a">Lazy relationships firing one query per parent; avoided with <code>joinedload</code> on agent skills/possible-shifts.</div></div>
+<div class="qa"><div class="q">39. Why Alembic?</div><div class="a">Reproducible, reversible, reviewable schema evolution vs unsafe auto-create.</div></div>
+<div class="qa"><div class="q">40. Connection pooling — how?</div><div class="a">One engine pools connections; each request borrows via <code>get_db</code> and returns on teardown; Supabase Session pooler in prod.</div></div>
+<div class="qa"><div class="q">41. How would you handle two managers generating at once?</div><div class="a">Today low-risk; add optimistic locking / a per-cycle advisory lock to serialize.</div></div>
+<div class="qa"><div class="q">42. Why store <code>hashed_password</code> not password?</div><div class="a">A DB leak must not expose credentials; bcrypt is one-way + salted.</div></div>
+<div class="qa"><div class="q">43. Why enums in the DB?</div><div class="a">Enforce a closed set of valid values at the storage layer, not just in code.</div></div>
+<div class="qa"><div class="q">44. How do you migrate safely in prod?</div><div class="a">Run Alembic <code>upgrade</code> on deploy; additive changes first, backfill, then constrain.</div></div>
+<div class="qa"><div class="q">45. Sharding strategy?</div><div class="a">By organization/tenant once multi-tenant.</div></div>
+
+<h3>D. Auth &amp; Security (46–62)</h3>
+<div class="qa"><div class="q">46. Walk me through login.</div><div class="a">Verify bcrypt hash → mint HS256 JWT with sub/role/agent_id/exp → client stores it → sent as Bearer on each request.</div></div>
+<div class="qa"><div class="q">47. Is a JWT encrypted?</div><div class="a">No — signed. Readable by anyone; never put secrets in it.</div><div class="why-ask">Extremely common misconception.</div></div>
+<div class="qa"><div class="q">48. Can a user forge a manager token?</div><div class="a">No — without the secret the HMAC signature won't verify.</div></div>
+<div class="qa"><div class="q">49. Where's the token stored and what's the risk?</div><div class="a">localStorage — convenient but XSS-reachable; mitigate with httpOnly cookies + CSRF or short tokens + refresh.</div></div>
+<div class="qa"><div class="q">50. How do you revoke a token?</div><div class="a">Today you can't before expiry — a known gap; fix with short TTL + refresh rotation or a denylist.</div><div class="why-ask">Tests honesty about JWT trade-offs.</div></div>
+<div class="qa"><div class="q">51. Why is CSRF low-risk here?</div><div class="a">Auth is a bearer header, not an auto-sent cookie, so cross-site requests can't attach it.</div></div>
+<div class="qa"><div class="q">52. How is SQL injection prevented?</div><div class="a">SQLAlchemy parameterization — no string-built SQL.</div></div>
+<div class="qa"><div class="q">53. How is XSS prevented?</div><div class="a">React auto-escapes; no <code>dangerouslySetInnerHTML</code>.</div></div>
+<div class="qa"><div class="q">54. Client checks the role — is that security?</div><div class="a">No, it's UX. Real enforcement is server-side <code>require_manager</code>.</div></div>
+<div class="qa"><div class="q">55. How do you stop one agent reading another's data?</div><div class="a"><code>/mine</code> endpoints filter by the token's <code>agent_id</code>, not a client-supplied id.</div></div>
+<div class="qa"><div class="q">56. Where do secrets live?</div><div class="a">Env vars / Secret Manager; never in the repo.</div></div>
+<div class="qa"><div class="q">57. Brute-force protection?</div><div class="a">Not yet — add rate limiting/lockout on login.</div></div>
+<div class="qa"><div class="q">58. Why bcrypt not SHA-256?</div><div class="a">bcrypt is deliberately slow + salted; fast hashes are trivially brute-forced.</div></div>
+<div class="qa"><div class="q">59. File-upload security?</div><div class="a">Parsed in memory + every row re-validated against hard constraints before commit.</div></div>
+<div class="qa"><div class="q">60. Why an explicit CORS allow-list?</div><div class="a">Wildcard + credentials is disallowed and unsafe; explicit origins only.</div></div>
+<div class="qa"><div class="q">61. Audit trail — what and why?</div><div class="a">Append-only log of actor/action/target/old-new/reason for accountability &amp; debugging.</div></div>
+<div class="qa"><div class="q">62. HTTPS — who terminates TLS?</div><div class="a">Cloud Run and Vercel edge; tokens never travel in clear.</div></div>
+
+<h3>E. Frontend (63–76)</h3>
+<div class="qa"><div class="q">63. Redux or not — why?</div><div class="a">No Redux; most state is server data, so React Query (a cache) handles it; a tiny Context holds auth.</div></div>
+<div class="qa"><div class="q">64. Server state vs client state?</div><div class="a">Server state is a cache of backend-owned data (React Query); client state is UI-only (useState/Context).</div></div>
+<div class="qa"><div class="q">65. How does the SPA survive a page refresh on a deep link?</div><div class="a">Vercel rewrite sends non-<code>/api</code> paths to <code>index.html</code>; the router re-resolves client-side.</div></div>
+<div class="qa"><div class="q">66. How is auth persisted across reloads?</div><div class="a">Token/role/agentId in localStorage, re-hydrated into Context on load.</div></div>
+<div class="qa"><div class="q">67. How do protected routes work?</div><div class="a"><code>ProtectedRoute</code> redirects unauthenticated/mismatched-role users; server still enforces.</div></div>
+<div class="qa"><div class="q">68. How are API errors shown consistently?</div><div class="a"><code>extractErrorMessage</code> normalizes FastAPI's three error shapes into one string.</div></div>
+<div class="qa"><div class="q">69. Why react-hook-form?</div><div class="a">Uncontrolled inputs → fewer re-renders; simple per-field validation.</div></div>
+<div class="qa"><div class="q">70. What makes it a PWA?</div><div class="a">vite-plugin-pwa generates a service worker + manifest → installable, offline shell.</div></div>
+<div class="qa"><div class="q">71. Where's memoization used?</div><div class="a"><code>useMemo</code> stabilizes the AuthContext value to avoid needless consumer re-renders.</div></div>
+<div class="qa"><div class="q">72. How would you code-split?</div><div class="a">Route-level <code>React.lazy</code> + Suspense; Vite already chunks vendors.</div></div>
+<div class="qa"><div class="q">73. How is the 401 handled globally?</div><div class="a">axios response interceptor clears storage and redirects to /login.</div></div>
+<div class="qa"><div class="q">74. Why TypeScript?</div><div class="a">Compile-time contract with the backend schemas; catches shape mismatches early.</div></div>
+<div class="qa"><div class="q">75. How does the grid render?</div><div class="a">A pure <code>lib</code> transform reshapes flat assignments into an agent×day grid; the component just maps it.</div></div>
+<div class="qa"><div class="q">76. Why axios not fetch?</div><div class="a">Interceptors (auth + 401), automatic JSON, and cleaner error objects.</div></div>
+
+<h3>F. Backend/Design patterns (77–88)</h3>
+<div class="qa"><div class="q">77. Name the layers.</div><div class="a">Controller(routes) → Service → Repository(crud) → Domain/Solver → Model, with Schemas at the edge.</div></div>
+<div class="qa"><div class="q">78. What is Dependency Injection here?</div><div class="a">FastAPI <code>Depends</code> supplies db session, current user, role guards — testable and reusable.</div></div>
+<div class="qa"><div class="q">79. Why separate schemas from models?</div><div class="a">Never leak DB internals over the wire; validate input independently of persistence.</div></div>
+<div class="qa"><div class="q">80. How are domain errors handled?</div><div class="a">Typed exceptions with status_code+detail; routes map to HTTPException, some with a violations list.</div></div>
+<div class="qa"><div class="q">81. Repository pattern benefit?</div><div class="a">All queries per resource live in one place — testable, swappable, no SQL in routes.</div></div>
+<div class="qa"><div class="q">82. How do you test the solver?</div><div class="a">Feed dataclasses directly to <code>solve</code> — no DB — and assert assignments/decisions.</div></div>
+<div class="qa"><div class="q">83. Why is <code>get_db</code> a generator?</div><div class="a">Setup/teardown: yield a session, guarantee close after response.</div></div>
+<div class="qa"><div class="q">84. Idempotency example?</div><div class="a">Delta leave-sync + auto-publish/lock jobs are safe to re-run.</div></div>
+<div class="qa"><div class="q">85. Singleton pattern?</div><div class="a"><code>solver_weights</code> is a single id=1 config row via get-or-create.</div></div>
+<div class="qa"><div class="q">86. Why is <code>domain/</code> shared by solver and import?</div><div class="a">So both enforce identical coverage/leave rules — no drift.</div></div>
+<div class="qa"><div class="q">87. State machine in the code?</div><div class="a">Roster/cycle: draft→published→locked with guarded transitions.</div></div>
+<div class="qa"><div class="q">88. How is config managed?</div><div class="a">Pydantic Settings from env; fails fast on missing required vars.</div></div>
+
+<h3>G. Performance/Scale/Behavioral (89–105)</h3>
+<div class="qa"><div class="q">89. First bottleneck at 10k users?</div><div class="a">DB connections + the synchronous solve blocking a worker; fix with a pooler and a job queue.</div></div>
+<div class="qa"><div class="q">90. Add caching where?</div><div class="a">Public roster reads (Redis), keyed by week; invalidate on publish.</div></div>
+<div class="qa"><div class="q">91. Pagination — where and how?</div><div class="a">List endpoints (requests, audit) via limit/offset or keyset.</div></div>
+<div class="qa"><div class="q">92. How to remove cold starts?</div><div class="a">Cloud Run min-instances ≥ 1.</div></div>
+<div class="qa"><div class="q">93. Compression?</div><div class="a">gzip/brotli at the edge for JSON/assets.</div></div>
+<div class="qa"><div class="q">94. How would you make the solve async?</div><div class="a">Enqueue a job, return 202 + job id, poll a status endpoint or push via WebSocket.</div></div>
+<div class="qa"><div class="q">95. Multi-tenancy plan?</div><div class="a">Add an organization column, scope every query, isolate per tenant, shard later.</div></div>
+<div class="qa"><div class="q">96. Observability gaps?</div><div class="a">Structured logs, Sentry, tracing — currently only request logs + tests.</div></div>
+<div class="qa"><div class="q">97. Biggest technical risk?</div><div class="a">Solver correctness/feasibility edge cases — mitigated by the pure model + unit tests.</div></div>
+<div class="qa"><div class="q">98. What are you proudest of?</div><div class="a">Modelling fairness (minimax) and FCFS (lexicographic) so neither corrupts the other, and making coverage degrade gracefully.</div></div>
+<div class="qa"><div class="q">99. What would you do differently?</div><div class="a">Single-transaction generate+audit; indexes/pagination from day one; refresh tokens; move token out of localStorage.</div></div>
+<div class="qa"><div class="q">100. Hardest bug you'd anticipate?</div><div class="a">Leave-balance double-charging on regeneration — solved by delta sync.</div></div>
+<div class="qa"><div class="q">101. How did you validate correctness?</div><div class="a">16 pytest suites incl. solver, lifecycle, excel round-trip, appeals.</div></div>
+<div class="qa"><div class="q">102. Explain a trade-off you consciously accepted.</div><div class="a">Stateless JWT gives free scaling at the cost of instant revocation — acceptable for 8h shifts.</div></div>
+<div class="qa"><div class="q">103. Why soft coverage over hard — business framing?</div><div class="a">"You don't have to strictly maintain minimum agents" — better a slightly-thin slot than no schedule at all.</div></div>
+<div class="qa"><div class="q">104. How do you keep import and solver rules in sync?</div><div class="a">Shared pure <code>domain/</code> functions used by both.</div></div>
+<div class="qa"><div class="q">105. If the solve times out, what does the user get?</div><div class="a">The best feasible solution found within 30s (still valid on all hard constraints), not an error.</div></div>
+
+<!-- ===================== 21. DEEP WHY ===================== -->
+<div class="chapter"></div>
+<h2 id="c21">21 · Deep &ldquo;Why&rdquo; Section</h2>
+<table>
+  <tr><th>Component</th><th>Why created · Why here · Why this way · Why not otherwise · Why better/faster/secure</th></tr>
+  <tr><td>Pure solver <code>model.py</code></td><td>Created to isolate the hardest logic; placed in its own module with no I/O so it's unit-testable; implemented with the compact mode design because fewer variables = faster solves; not embedded in the service because DB coupling would make it untestable; better because correctness is provable and tested, faster because the model is small, secure because it touches no external input directly.</td></tr>
+  <tr><td>Soft coverage + shortfall</td><td>Created so understaffing can't crash generation; here because coverage is the constraint most likely to be unsatisfiable; done with a penalized shortfall var; not a hard <code>&gt;=</code> because that yields infeasible/no-answer; better because it degrades gracefully and still meets coverage whenever possible.</td></tr>
+  <tr><td>Lexicographic FCFS</td><td>Created to make tie-breaking fair &amp; deterministic; implemented via magnitude scaling; not random because arbitrary tie-breaks feel unjust; better because it provably never overrides a real objective difference.</td></tr>
+  <tr><td>Delta leave-sync</td><td>Created so regeneration is idempotent; not absolute deduction because that double-charges; better because balances stay correct across any number of runs.</td></tr>
+  <tr><td>Stateless JWT</td><td>Created for scale-free auth; not server sessions because those need a shared store; secure via HMAC signature; trade-off: revocation.</td></tr>
+  <tr><td>React Query</td><td>Created to avoid hand-writing a cache; not Redux because server data ≠ client state; faster to build, less code, correct invalidation.</td></tr>
+  <tr><td>Shared <code>domain/</code></td><td>Created so solver and Excel import can't disagree on the rules; better because there's one source of truth for coverage/leave semantics.</td></tr>
+  <tr><td>Alembic migrations</td><td>Created for safe schema evolution; not auto-create because it can't alter safely; better because changes are reviewable/reversible.</td></tr>
+</table>
+
+<!-- ===================== 22. MASTER RECAP ===================== -->
+<div class="chapter"></div>
+<h2 id="c22">22 · Teach Me Like a Mentor — Master Recap</h2>
+
+<div class="callout mentor">
+  <h4>The five sentences that carry the whole interview</h4>
+  <ol>
+    <li><strong>What it is:</strong> "An automated call-center rostering platform that models weekly scheduling as a CP-SAT optimization — hard rules as constraints, soft requests as weighted penalties — behind a FastAPI + Postgres backend and a React SPA."</li>
+    <li><strong>The clever core:</strong> "Coverage is a <em>soft</em> constraint with a shortfall variable, so understaffing degrades gracefully instead of making the model infeasible."</li>
+    <li><strong>Fairness:</strong> "Fairness is minimax over per-agent denials; first-come-first-served is a lexicographically-scaled tie-breaker that can never override a real trade-off."</li>
+    <li><strong>Correctness:</strong> "The solver and domain rules are pure functions with no I/O, unit-tested, and shared by both roster generation and Excel re-validation so the two can't diverge."</li>
+    <li><strong>Judgement:</strong> "I implemented the layers the problem needs and consciously omitted cache/queue/object-storage — and I can name the exact signal that would make me add each."</li>
+  </ol>
+</div>
+
+<div class="callout why">
+  <h4>The one diagram to draw from memory</h4>
+  <p>User → React SPA (Vercel) → FastAPI (Cloud Run): [CORS → route → <code>Depends</code> auth/role → endpoint → service → solver/CRUD → Postgres (Supabase)] → Pydantic JSON → React Query cache → UI. Off to the side: Cloud Scheduler → auto-publish/lock jobs. Draw that, label the solver box "hard=constraints, soft=weighted objective", and you've shown you understand the system.</p>
+</div>
+
+<div class="callout warnbox">
+  <h4>Common confusions to never fall into</h4>
+  <ul>
+    <li>JWTs are <em>signed, not encrypted</em>.</li>
+    <li>The frontend role check is UX, not security.</li>
+    <li>"No queue" doesn't mean "no background work".</li>
+    <li>React Query is a cache, not a general state manager.</li>
+    <li>The solver is exact optimization, not machine learning.</li>
+    <li>Coverage is a soft target, not a hard floor.</li>
+  </ul>
+</div>
+
+<div class="callout mentor">
+  <h4>Quick recap of the whole system</h4>
+  <p>Managers configure <strong>skills, shifts, agents, coverage, balances, and solver weights</strong>, open a <strong>weekly cycle</strong>, and let agents submit <strong>requests</strong>. On <strong>generate</strong>, the service loads state, ranks requests FCFS, builds a <strong>CP-SAT model</strong> (hard: one-mode-per-day, weekly rest, headcount caps; soft: requests, coverage-shortfall, fairness, FCFS), solves within 30s, and writes a <strong>roster</strong> with assignments, flips request statuses, delta-syncs <strong>leave balances</strong>, and records <strong>conflicts</strong> and <strong>satisfaction metrics</strong> — all in one transaction. Rosters flow <strong>draft → published → locked</strong>, automatically on a Friday-night/Monday-morning schedule or manually. Agents view outcomes and <strong>appeal</strong>; every change is written to an <strong>audit log</strong>. The public sees the published roster with no login. It's deployed for ~$0 on Cloud Run + Supabase + Vercel.</p>
+  <p>Read this handbook twice, draw the diagram once without looking, and explain the five sentences aloud — you'll be ready to defend every decision.</p>
+</div>
+
+<hr>
+<p class="small">Handbook generated from the CallRoster Pro repository. Every code snippet and file reference is drawn from the actual source; where behaviour could not be inferred from the code it was explicitly labelled as an assumption or a known gap. Solver behaviour reflects <code>backend/app/solver/model.py</code> and <code>service.py</code> as committed.</p>
+
+</div>
+</body>
+</html>
