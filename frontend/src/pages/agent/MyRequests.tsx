@@ -93,6 +93,15 @@ export default function MyRequests() {
   const targetCycle = cycleForDate(startDate)
   const canSubmit = Boolean(targetCycle && targetCycle.status === 'open')
 
+  // A request can be edited/withdrawn until its cycle's request deadline — the
+  // outcome shown after a draft generation doesn't lock it (outcomes are hidden
+  // until the roster is published anyway).
+  const canModify = (r: WeeklyRequest) => {
+    const c = cyclesQuery.data?.find((x) => x.id === r.week_cycle_id)
+    if (!c || c.status === 'locked') return false
+    return Date.now() <= new Date(c.request_deadline).getTime()
+  }
+
   const submitMutation = useMutation({
     mutationFn: () =>
       submitRequest({
@@ -216,8 +225,14 @@ export default function MyRequests() {
         )}
       </Card>
 
-      <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-[13px] font-semibold text-ink">My requests</h2>
+      <div className="mb-1 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-[13px] font-semibold text-ink">My requests</h2>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            Approved/denied outcomes appear once the manager publishes that week's roster. You can edit or withdraw a
+            request until its deadline.
+          </p>
+        </div>
         <div className="flex flex-wrap items-end gap-2">
           <Field label="Type">
             <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)} className="w-44">
@@ -262,7 +277,7 @@ export default function MyRequests() {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
                   <StatusBadge status={r.status} />
-                  {r.status === 'pending' && (
+                  {canModify(r) && (
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="sm" icon={Pencil} onClick={() => setEditing(r)}>
                         Edit
