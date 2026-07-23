@@ -183,11 +183,18 @@ export default function RosterWorkspace() {
     return [...days].sort()
   }, [assignmentsQuery.data])
 
+  // Every active agent gets a row — including anyone the solver left fully off
+  // that week (surplus vs. shift capacity) — so the roster shows the whole team,
+  // not just those with assignments.
   const gridRows = useMemo(() => {
-    const ids = new Set<number>()
-    for (const a of assignmentsQuery.data ?? []) ids.add(a.agent_id)
-    return [...ids]
-      .map((id) => ({ id, name: agentName(id) }))
+    const assignedIds = new Set<number>((assignmentsQuery.data ?? []).map((a) => a.agent_id))
+    const byId = new Map<number, string>()
+    for (const a of agentsQuery.data ?? []) {
+      if (a.active || assignedIds.has(a.id)) byId.set(a.id, a.name)
+    }
+    for (const id of assignedIds) if (!byId.has(id)) byId.set(id, agentName(id))
+    return [...byId.entries()]
+      .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name))
       .map((a) => ({ key: String(a.id), name: a.name }))
   }, [assignmentsQuery.data, agentsQuery.data])
@@ -197,6 +204,11 @@ export default function RosterWorkspace() {
     for (const a of assignmentsQuery.data ?? []) map.set(`${a.agent_id}|${a.date}`, a)
     return map
   }, [assignmentsQuery.data])
+
+  const fullyOffCount = useMemo(() => {
+    const assigned = new Set<number>((assignmentsQuery.data ?? []).map((a) => a.agent_id))
+    return gridRows.filter((r) => !assigned.has(Number(r.key))).length
+  }, [gridRows, assignmentsQuery.data])
 
   function shiftCompactLabel(shiftId: number): string {
     const shift = shiftsQuery.data?.find((s) => s.id === shiftId)
@@ -306,7 +318,13 @@ export default function RosterWorkspace() {
             <section className="min-w-0">
               <Card padded={false}>
                 <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                  <h2 className="text-[13px] font-semibold text-ink">Assignments</h2>
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-[13px] font-semibold text-ink">Assignments</h2>
+                    <span className="text-xs text-ink-muted">
+                      {gridRows.length} agents
+                      {fullyOffCount > 0 ? ` · ${fullyOffCount} off all week` : ''}
+                    </span>
+                  </div>
                   <ShiftLegend entries={Object.entries(SHIFT_COLORS) as [string, string][]} />
                 </div>
                 {gridDays.length === 0 ? (
