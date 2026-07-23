@@ -262,3 +262,36 @@ def test_unmeetable_coverage_is_soft_not_infeasible():
     result = _solve([agent], coverage=[_all_day_coverage(0)])
     assert result.status in ("optimal", "feasible")
     assert len(_days_worked(result, 1)) == 6  # still scheduled on their own skill
+
+
+def test_agent_with_only_possible_shift_still_works_full_week():
+    """An agent with no default shift but a usable possible shift must still take
+    exactly its configured rest days and work the rest — coverage being only a
+    floor must never bench a surplus agent that is able to work."""
+    agent = SolverAgent(
+        id=1,
+        skill_ids=[SKILL],
+        default_shift_id=None,
+        default_off_day_type="flexible",
+        default_off_day=None,
+        default_off_days_per_week=1,
+        possible_shift_ids=[SHIFT.id],
+    )
+    result = _solve([agent])
+    assert len(_days_worked(result, 1)) == 6
+
+
+def test_agent_with_no_assignable_shift_is_all_off():
+    """An agent with neither a default nor any possible shift has no work mode
+    and is simply left off — not forced (which would be infeasible)."""
+    agent = SolverAgent(
+        id=1,
+        skill_ids=[SKILL],
+        default_shift_id=None,
+        default_off_day_type="flexible",
+        default_off_day=None,
+        default_off_days_per_week=1,
+        possible_shift_ids=[],
+    )
+    result = _solve([agent])
+    assert _days_worked(result, 1) == []

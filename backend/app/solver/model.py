@@ -230,10 +230,17 @@ def solve(problem: SolverInput) -> SolverResult:
     # NOT add a day off; it only asks for the single rest day to fall on a
     # particular day (soft, below), so off-day-request days stay in the pool
     # as candidate rest days.
-    # Agents with no default shift can never work (only "off" mode exists),
-    # so the quota is meaningless for them and is skipped.
+    # An agent can work if they have a default shift OR any usable possible
+    # shift. Every such agent takes exactly their configured number of rest days
+    # and works all other (non-leave) days — coverage minimums are only a floor,
+    # so having more agents than required never benches anyone. Only agents with
+    # no assignable shift at all (no default and no possible shift) are skipped,
+    # since they have no work mode and can only be off.
     for agent in problem.agents:
-        if agent.default_shift_id is None:
+        has_work_mode = agent.default_shift_id is not None or any(
+            sid in shifts_by_id for sid in agent.possible_shift_ids
+        )
+        if not has_work_mode:
             continue
         rest_pool = [
             d
