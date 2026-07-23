@@ -4,9 +4,9 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { extractErrorMessage } from '../../api/client'
 import {
   deleteRequest,
-  getCurrentWeeklyCycle,
   listMyRequests,
   listShiftTemplates,
+  listWeeklyCycles,
   submitAppeal,
   submitRequest,
   updateRequest,
@@ -34,9 +34,23 @@ const REQUEST_TYPES: RequestType[] = ['off_day', 'leave_full', 'leave_half', 'le
 
 export default function MyRequests() {
   const queryClient = useQueryClient()
-  const cycleQuery = useQuery({ queryKey: ['current-cycle'], queryFn: getCurrentWeeklyCycle, retry: false })
+  const cyclesQuery = useQuery({ queryKey: ['weekly-cycles'], queryFn: listWeeklyCycles })
   const requestsQuery = useQuery({ queryKey: ['my-requests'], queryFn: () => listMyRequests() })
   const shiftsQuery = useQuery({ queryKey: ['shift-templates'], queryFn: listShiftTemplates })
+
+  // A request belongs to the weekly cycle whose Mon–Sun week contains the
+  // requested date — not merely the "current" week — so the manager sees it
+  // under the right week and the solver plans the right cycle.
+  const cycleForDate = (dateStr: string) => {
+    if (!dateStr) return undefined
+    const d = new Date(`${dateStr}T00:00:00`)
+    return (cyclesQuery.data ?? []).find((c) => {
+      const start = new Date(`${c.week_start_date}T00:00:00`)
+      const end = new Date(start)
+      end.setDate(start.getDate() + 6)
+      return d >= start && d <= end
+    })
+  }
 
   const [type, setType] = useState<RequestType>('off_day')
   const [startDate, setStartDate] = useState('')
@@ -76,10 +90,13 @@ export default function MyRequests() {
     return true
   })
 
+  const targetCycle = cycleForDate(startDate)
+  const canSubmit = Boolean(targetCycle && targetCycle.status === 'open')
+
   const submitMutation = useMutation({
     mutationFn: () =>
       submitRequest({
-        week_cycle_id: cycleQuery.data!.id,
+        week_cycle_id: targetCycle!.id,
         request_type: type,
         requested_start_date: startDate,
         requested_end_date: type === 'leave_multi' ? endDate : undefined,
@@ -117,11 +134,11 @@ export default function MyRequests() {
       <PageTitle subtitle="Submit a new request or check the status of ones you've already sent in.">My Requests</PageTitle>
 
       <Card className="mb-6">
-        <CardHeader title="Submit a request" description="Requests are reviewed and factored into the weekly roster." />
-        {!cycleQuery.data && !cycleQuery.isLoading && (
-          <p className="text-[13px] text-ink-muted">No weekly cycle is currently open for requests.</p>
+        <CardHeader title="Submit a request" description="Requests are filed under the week that contains the date you pick." />
+        {cyclesQuery.data && cyclesQuery.data.length === 0 && (
+          <p className="text-[13px] text-ink-muted">No weekly cycles exist yet — ask your manager to create one.</p>
         )}
-        {cycleQuery.data && (
+        {cyclesQuery.data && cyclesQuery.data.length > 0 && (
           <>
             <ErrorBanner message={formError} />
             <SuccessBanner message={formSuccess} />
@@ -173,10 +190,26 @@ export default function MyRequests() {
               <Field label="Reason (optional)">
                 <Input value={reason} onChange={(e) => setReason(e.target.value)} />
               </Field>
-              <div className="sm:col-span-2">
-                <Button type="submit" disabled={submitMutation.isPending}>
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+                <Button type="submit" disabled={submitMutation.isPending || !canSubmit}>
                   {submitMutation.isPending ? 'Submitting…' : 'Submit request'}
                 </Button>
+                {startDate &&
+                  (targetCycle ? (
+                    targetCycle.status === 'open' ? (
+                      <span className="text-xs text-ink-muted">
+                        Files under the week of <span className="font-medium text-ink-secondary">{targetCycle.week_start_date}</span>.
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-warning">
+                        The week of {targetCycle.week_start_date} is {targetCycle.status} — not open for requests.
+                      </span>
+                    )
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-warning">
+                      No weekly cycle covers that date yet — ask your manager to open it.
+                    </span>
+                  ))}
               </div>
             </form>
           </>
