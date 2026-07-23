@@ -97,7 +97,9 @@ def test_off_day_denied_and_reflected_in_request_status(client, manager_headers,
     assert len(body["conflicts"]) == 1
     assert body["conflicts"][0]["unmet_request_id"] == req["id"]
 
-    updated = client.get("/api/requests/mine", headers=agent_headers).json()[0]
+    # Read via the manager endpoint (agent-facing outcomes are hidden until the
+    # roster is published; the manager sees the real draft result).
+    updated = client.get(f"/api/requests?week={cycle['id']}", headers=manager_headers).json()[0]
     assert updated["status"] == "denied"
     assert updated["denial_reason"] == "coverage requirement"
 
@@ -120,7 +122,7 @@ def test_off_day_honored_with_slack(client, manager_headers, agent_headers, agen
     body = response.json()
     assert body["conflicts"] == []
 
-    updated = client.get("/api/requests/mine", headers=agent_headers).json()[0]
+    updated = client.get(f"/api/requests?week={cycle['id']}", headers=manager_headers).json()[0]
     assert updated["status"] == "approved"
 
     monday_assignments = [a for a in body["assignments"] if a["date"] == cycle["week_start_date"]]

@@ -6,8 +6,9 @@ from app.crud import weekly_request as crud
 from app.crud.audit import record_audit
 from app.crud.weekly_request import WeeklyRequestError
 from app.db.session import get_db
-from app.models.enums import UserRole
+from app.models.enums import RequestStatus, UserRole, WeeklyCycleStatus
 from app.models.user import User
+from app.models.weekly_cycle import WeeklyCycle
 from app.models.weekly_request import WeeklyRequest
 from app.schemas.weekly_request import (
     WeeklyRequestCreate,
@@ -62,7 +63,25 @@ def list_my_requests(
 ) -> list[WeeklyRequestOut]:
     if current_user.agent_id is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This account is not linked to an agent")
-    return crud.list_requests(db, week_cycle_id=week_cycle_id, agent_id=current_user.agent_id)
+    requests = crud.list_requests(db, week_cycle_id=week_cycle_id, agent_id=current_user.agent_id)
+
+    # Hide approved/denied outcomes until the cycle's roster is published — a draft
+    # generation must not reveal (or keep flipping) an agent's result. Cycles are
+    # fetched once and the outcome is masked back to "pending" where not revealed.
+    cycle_ids = {r.week_cycle_id for r in requests}
+    revealed = {
+        c.id
+        for c in db.query(WeeklyCycle).filter(WeeklyCycle.id.in_(cycle_ids)).all()
+        if c.status in crud.REVEALED_CYCLE_STATUSES
+    } if cycle_ids else set()
+
+    out: list[WeeklyRequestOut] = []
+    for r in requests:
+        model = WeeklyRequestOut.model_validate(r)
+        if r.week_cycle_id not in revealed and r.status != RequestStatus.pending:
+            model = model.model_copy(update={"status": RequestStatus.pending, "denial_reason": None})
+        out.append(model)
+    return out
 
 
 @router.get("", response_model=list[WeeklyRequestOut], dependencies=[Depends(require_manager)])

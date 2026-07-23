@@ -291,3 +291,81 @@ def test_leave_multi_day_count_validated_against_balance(client, manager_headers
 
     balance = client.get(f"/api/leave-balance/{agent_record.id}", headers=manager_headers).json()
     assert balance["remaining_balance"] == 2
+
+
+# --- outcome visibility + edit window (workflow rules) ---
+
+from app.models.enums import WeeklyCycleStatus  # noqa: E402
+
+
+def _setup_denied_off_day(client, manager_headers, agent_headers, agent_record):
+    """A sole agent requesting an off day the coverage floor needs -> solver denies it."""
+    cycle = _create_cycle(client, manager_headers)
+    skill = client.post("/api/skills", json={"name": "Support"}, headers=manager_headers).json()
+    shift = client.post(
+        "/api/shift-templates",
+        json={"name": "Day", "start_time": "09:00:00", "end_time": "17:00:00"},
+        headers=manager_headers,
+    ).json()
+    client.patch(
+        f"/api/agents/{agent_record.id}",
+        json={"default_shift_id": shift["id"], "skill_ids": [skill["id"]]},
+        headers=manager_headers,
+    )
+    client.post(
+        "/api/coverage-requirements",
+        json={"day_of_week": 0, "time_slot_start": "09:00:00", "time_slot_end": "17:00:00",
+              "skill_id": skill["id"], "min_agents_required": 1},
+        headers=manager_headers,
+    )
+    req = client.post(
+        "/api/requests",
+        json={"week_cycle_id": cycle["id"], "request_type": "off_day", "requested_start_date": cycle["week_start_date"]},
+        headers=agent_headers,
+    ).json()
+    client.post(f"/api/roster/generate?week_cycle_id={cycle['id']}", headers=manager_headers)
+    return cycle, req
+
+
+def test_outcome_hidden_from_agent_until_published(client, manager_headers, agent_headers, agent_record, db_session):
+    cycle, req = _setup_denied_off_day(client, manager_headers, agent_headers, agent_record)
+
+    # Draft generation denied it in the DB, but the agent must still see "pending".
+    mine = client.get("/api/requests/mine", headers=agent_headers).json()[0]
+    assert mine["status"] == "pending"
+    assert mine["denial_reason"] is None
+    # The manager, however, sees the real outcome.
+    manager_view = client.get(f"/api/requests?week={cycle['id']}", headers=manager_headers).json()[0]
+    assert manager_view["status"] == "denied"
+
+    # Once published, the agent sees the real outcome.
+    db_cycle = db_session.query(WeeklyCycle).filter(WeeklyCycle.id == cycle["id"]).first()
+    db_cycle.status = WeeklyCycleStatus.published
+    db_session.commit()
+    revealed = client.get("/api/requests/mine", headers=agent_headers).json()[0]
+    assert revealed["status"] == "denied"
+
+
+def test_agent_can_edit_after_draft_generation_before_deadline(client, manager_headers, agent_headers, agent_record):
+    _, req = _setup_denied_off_day(client, manager_headers, agent_headers, agent_record)
+
+    # Even though a draft generation denied it, it is still editable before the
+    # deadline, and editing returns it to the pending pool.
+    resp = client.put(
+        f"/api/requests/{req['id']}",
+        json={"request_type": "off_day", "requested_start_date": req["requested_start_date"], "reason": "revised"},
+        headers=agent_headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "pending"
+    assert resp.json()["reason"] == "revised"
+
+
+def test_edit_blocked_after_request_deadline(client, manager_headers, agent_headers, agent_record, db_session):
+    _, req = _setup_denied_off_day(client, manager_headers, agent_headers, agent_record)
+    db_cycle = db_session.query(WeeklyCycle).filter(WeeklyCycle.id == req["week_cycle_id"]).first()
+    db_cycle.request_deadline = datetime.now(timezone.utc) - timedelta(minutes=1)
+    db_session.commit()
+
+    resp = client.delete(f"/api/requests/{req['id']}", headers=agent_headers)
+    assert resp.status_code == 400

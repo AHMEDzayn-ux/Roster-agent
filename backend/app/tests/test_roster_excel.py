@@ -247,7 +247,8 @@ def test_import_reversing_off_day_requires_reason(client, manager_headers, agent
     body = response.json()
     assert len(body["overridden_requests"]) == 1
 
-    updated_request = client.get("/api/requests/mine", headers=agent_headers).json()[0]
+    # Manager view is unmasked (agent outcomes stay hidden until publish).
+    updated_request = client.get(f"/api/requests?week={cycle['id']}", headers=manager_headers).json()[0]
     assert updated_request["id"] == req["id"]
     assert updated_request["status"] == "denied"
     assert updated_request["denial_reason"] == "manual roster override"

@@ -42,6 +42,20 @@ def get_request(db: Session, request_id: int) -> WeeklyRequest | None:
     return db.query(WeeklyRequest).filter(WeeklyRequest.id == request_id).first()
 
 
+# Cycle states in which a roster has been published, so request outcomes may be
+# revealed to the agent. While a cycle is still "open" the roster is at most a
+# draft and outcomes must stay hidden (shown as pending).
+REVEALED_CYCLE_STATUSES = (WeeklyCycleStatus.published, WeeklyCycleStatus.locked)
+
+
+def outcome_is_visible_to_agent(db: Session, request: WeeklyRequest) -> bool:
+    """A request's approved/denied outcome is only shown to the agent once the
+    roster for its weekly cycle has been published (draft generations don't
+    reveal anything)."""
+    cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == request.week_cycle_id).first()
+    return cycle is not None and cycle.status in REVEALED_CYCLE_STATUSES
+
+
 def _get_leave_balance_or_error(db: Session, agent_id: int, year: int) -> LeaveBalance:
     balance = (
         db.query(LeaveBalance)
@@ -91,10 +105,11 @@ def create_request(db: Session, agent_id: int, request_in: WeeklyRequestCreate) 
 
 
 def _assert_editable_window(db: Session, request: WeeklyRequest) -> None:
-    """A request may be edited/withdrawn by its owner only while it is still
-    pending and the cycle's request window is open."""
-    if request.status != RequestStatus.pending:
-        raise WeeklyRequestError("Only pending requests can be changed")
+    """A request may be edited/withdrawn by its owner until the configured
+    request deadline. The outcome the solver writes during a *draft* roster
+    generation does not lock the request — only the deadline (and a locked
+    cycle) does — because roster outcomes aren't final until the roster is
+    published."""
     cycle = db.query(WeeklyCycle).filter(WeeklyCycle.id == request.week_cycle_id).first()
     now = datetime.now(timezone.utc)
     if cycle is None or cycle.status == WeeklyCycleStatus.locked or now > cycle.request_deadline:
@@ -118,6 +133,10 @@ def update_request(db: Session, request: WeeklyRequest, update: WeeklyRequestUpd
     request.half_day_portion = update.half_day_portion
     request.requested_shift_id = update.requested_shift_id
     request.reason = update.reason
+    # An edited request re-enters the pool as pending: any earlier draft outcome
+    # is discarded so the next generation reconsiders it from scratch.
+    request.status = RequestStatus.pending
+    request.denial_reason = None
     db.commit()
     db.refresh(request)
     return request

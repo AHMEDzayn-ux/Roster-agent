@@ -1,5 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 
+from app.models.enums import WeeklyCycleStatus
 from app.models.weekly_cycle import WeeklyCycle
 
 
@@ -17,8 +18,11 @@ def _create_cycle(client, manager_headers, weeks_ahead: int = 2) -> dict:
 
 
 def _open_appeal_window(db_session, cycle_id: int) -> None:
+    # Appeals only open once the roster is published — which is also when request
+    # outcomes become visible to the agent — so mark the cycle published here.
     now = datetime.now(timezone.utc)
     db_cycle = db_session.query(WeeklyCycle).filter(WeeklyCycle.id == cycle_id).first()
+    db_cycle.status = WeeklyCycleStatus.published
     db_cycle.publish_date = now - timedelta(minutes=1)
     db_cycle.appeal_deadline = now + timedelta(days=1)
     db_session.commit()
